@@ -1,0 +1,23 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build and packaging
+.build/
+build/
+dist/
+SmartStudyPlanner.exe
+
+# Local data (databases, configs, user specific tasks export/json)
+data/
+
+# Logs
+*.log
+
