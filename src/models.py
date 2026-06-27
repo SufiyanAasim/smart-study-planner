@@ -3,7 +3,7 @@ models.py
 This file defines our core Task data class. It handles representing a single 
 study task (like physics lab, essays, etc.) and serialization/deserialization 
 for saving it.
-Author: Mohammad Sufiyan Aasim (msufiyanpk)
+Author: Mohammad Sufiyan Aasim (SufiyanAasim)
 """
 
 from datetime import date, datetime

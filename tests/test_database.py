@@ -1,7 +1,10 @@
 import os
+import sys
 import tempfile
 import unittest
 from datetime import date
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from models import Task
 from logic import TaskManager

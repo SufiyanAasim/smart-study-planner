@@ -2,7 +2,7 @@
 logic.py
 TaskManager controller class. This acts as the backend logic engine,
 managing the task list in-memory and saving/loading from database & JSON.
-Author: Mohammad Sufiyan Aasim (msufiyanpk)
+Author: Mohammad Sufiyan Aasim (SufiyanAasim)
 """
 
 import json

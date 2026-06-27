@@ -2,11 +2,11 @@
 gui.py
 Graphical user interface (GUI) for the Smart Study Planner.
 Designed as a modern, responsive single-window Slate Dark/Light dashboard.
-Author: Mohammad Sufiyan Aasim (msufiyanpk)
+Author: Mohammad Sufiyan Aasim (SufiyanAasim)
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
+from tkinter import ttk, simpledialog
 from datetime import date, timedelta
 from PIL import Image, ImageTk
 
@@ -76,6 +76,154 @@ THEMES = {
         "scroll_trough": "#f1f5f9"
     }
 }
+
+
+# --- Premium Slate Custom Messagebox Class ---
+
+class ModernMessageBox(tk.Toplevel):
+    """A premium, modern Slate-themed custom modal dialog box."""
+
+    def __init__(self, parent, title, message, box_type="info"):
+        # Auto-detect parent if none provided
+        if not parent:
+            try:
+                parent = tk._default_root
+            except Exception:
+                pass
+        super().__init__(parent)
+        self.title(title)
+        self.result = None
+
+        # Detect active theme from parent
+        self.theme_name = "dark"
+        if parent:
+            # Check if parent is a widget and has a theme set
+            if hasattr(parent, "current_theme_name"):
+                self.theme_name = parent.current_theme_name
+            elif hasattr(parent, "theme") and isinstance(parent.theme, dict):
+                if parent.theme.get("bg_main") == "#f8fafc":
+                    self.theme_name = "light"
+        
+        self.theme = THEMES[self.theme_name]
+
+        # Style window
+        self.configure(bg=self.theme["bg_card"])
+        self.resizable(False, False)
+        
+        self.transient(parent)
+        self.grab_set()
+
+        # Center on parent or screen
+        self.update_idletasks()
+        if parent:
+            try:
+                px = parent.winfo_rootx() + (parent.winfo_width() // 2) - 180
+                py = parent.winfo_rooty() + (parent.winfo_height() // 2) - 90
+                self.geometry(f"360x180+{px}+{py}")
+            except Exception:
+                # Fallback to screen center
+                sw = self.winfo_screenwidth()
+                sh = self.winfo_screenheight()
+                self.geometry(f"360x180+{sw//2-180}+{sh//2-90}")
+        else:
+            sw = self.winfo_screenwidth()
+            sh = self.winfo_screenheight()
+            self.geometry(f"360x180+{sw//2-180}+{sh//2-90}")
+
+        # Grid config
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
+        # Main layout frame
+        main_frame = tk.Frame(self, bg=self.theme["bg_card"])
+        main_frame.pack(fill="both", expand=True, padx=20, pady=15)
+        main_frame.columnconfigure(1, weight=1)
+
+        # Icon based on type
+        icons = {
+            "info": ("ℹ️", self.theme["primary"]),
+            "success": ("✅", self.theme["success"]),
+            "error": ("❌", self.theme["danger"]),
+            "warning": ("⚠️", self.theme["warning"]),
+            "question": ("❓", self.theme["primary"])
+        }
+        emoji, color = icons.get(box_type, ("ℹ️", self.theme["primary"]))
+
+        # Dynamic emoji adjustment for success chimes
+        if box_type == "info" and any(k in message.lower() for k in ["success", "copi", "export", "sav", "sync", "updat"]):
+            emoji, color = icons["success"]
+
+        icon_lbl = tk.Label(main_frame, text=emoji, font=("Segoe UI", 26), bg=self.theme["bg_card"], fg=color)
+        icon_lbl.grid(row=0, column=0, sticky="nw", padx=(0, 15), pady=10)
+
+        # Message Text
+        msg_lbl = tk.Label(main_frame, text=message, font=("Segoe UI", 10), bg=self.theme["bg_card"], fg=self.theme["text_primary"],
+                           justify="left", anchor="w", wrap=250)
+        msg_lbl.grid(row=0, column=1, sticky="nsew", pady=10)
+
+        # Action Buttons frame
+        btn_frame = tk.Frame(main_frame, bg=self.theme["bg_card"])
+        btn_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+
+        if box_type == "question":
+            # Yes/No buttons
+            yes_btn = create_flat_button(
+                btn_frame, "✔️ Yes", self.theme["primary"], "#ffffff", self._on_yes, hover_bg=self.theme["primary_hover"]
+            )
+            yes_btn.pack(side="left", padx=(0, 10))
+
+            no_btn = create_flat_button(
+                btn_frame, "❌ No", self.theme["border"], self.theme["text_primary"], self._on_no, hover_bg=self.theme["bg_main"]
+            )
+            no_btn.pack(side="right")
+        else:
+            # OK button
+            ok_btn = create_flat_button(
+                btn_frame, "OK", self.theme["primary"], "#ffffff", self._on_ok, hover_bg=self.theme["primary_hover"], padx=20
+            )
+            ok_btn.pack(side="right")
+
+        # Focus button
+        self.bind("<Escape>", lambda e: self._on_no() if box_type == "question" else self._on_ok())
+        self.bind("<Return>", lambda e: self._on_yes() if box_type == "question" else self._on_ok())
+
+        self.protocol("WM_DELETE_WINDOW", self._on_no if box_type == "question" else self._on_ok)
+        self.wait_window()
+
+    def _on_yes(self):
+        self.result = True
+        self.destroy()
+
+    def _on_no(self):
+        self.result = False
+        self.destroy()
+
+    def _on_ok(self):
+        self.result = True
+        self.destroy()
+
+    @classmethod
+    def show(cls, parent, title, message, box_type="info"):
+        dialog = cls(parent, title, message, box_type)
+        return dialog.result
+
+
+class messagebox:
+    @staticmethod
+    def showinfo(title, message, parent=None):
+        return ModernMessageBox.show(parent, title, message, "info")
+
+    @staticmethod
+    def showerror(title, message, parent=None):
+        return ModernMessageBox.show(parent, title, message, "error")
+
+    @staticmethod
+    def showwarning(title, message, parent=None):
+        return ModernMessageBox.show(parent, title, message, "warning")
+
+    @staticmethod
+    def askyesno(title, message, parent=None):
+        return ModernMessageBox.show(parent, title, message, "question")
 
 
 def create_flat_button(parent, text, bg_color, fg_color, command, hover_bg=None, font=("Segoe UI", 10, "bold"), padx=12, pady=6):
@@ -1167,6 +1315,10 @@ class PlannerFrame(tk.Frame):
                                                lambda: self.switch_tab("settings"), hover_bg=self.theme["border"])
         self.btn_settings.pack(fill="x", padx=15, pady=3)
 
+        self.btn_scratchpad = create_flat_button(self.sidebar, TRANSLATIONS[lang]["sidebar_scratchpad"], self.theme["bg_card"], self.theme["text_primary"],
+                                                 lambda: self.switch_tab("scratchpad"), hover_bg=self.theme["border"])
+        self.btn_scratchpad.pack(fill="x", padx=15, pady=3)
+
         self.btn_credits = create_flat_button(self.sidebar, TRANSLATIONS[lang]["sidebar_credits"], self.theme["bg_card"], self.theme["text_primary"],
                                               lambda: self.switch_tab("credits"), hover_bg=self.theme["border"])
         self.btn_credits.pack(fill="x", padx=15, pady=3)
@@ -1223,12 +1375,20 @@ class PlannerFrame(tk.Frame):
         self._build_groups_panel()
         self._build_insights_panel()
         self._build_settings_panel()
+        self._build_scratchpad_panel()
         self._build_credits_panel()
 
         # Set default (or restored) tab
         self.switch_tab(self._initial_tab)
 
     def switch_tab(self, tab_name):
+        # Save scratchpad if navigating away from it
+        if getattr(self, "active_tab", None) == "scratchpad" and tab_name != "scratchpad":
+            try:
+                self._save_scratchpad_notes()
+            except Exception:
+                pass
+
         # Stop any ambient soundscape when navigating away from the Focus Timer.
         if tab_name != "timer" and getattr(self, "soundscape_playing", False):
             self._stop_soundscape()
@@ -1244,6 +1404,7 @@ class PlannerFrame(tk.Frame):
             (self.btn_groups, "groups"),
             (self.btn_insights, "insights"),
             (self.btn_settings, "settings"),
+            (self.btn_scratchpad, "scratchpad"),
             (self.btn_credits, "credits")
         ]
         for btn, name in buttons:
@@ -1266,6 +1427,7 @@ class PlannerFrame(tk.Frame):
         self.groups_panel.grid_forget()
         self.insights_panel.grid_forget()
         self.settings_panel.grid_forget()
+        self.scratchpad_panel.grid_forget()
         self.credits_panel.grid_forget()
 
         if tab_name == "tasks":
@@ -1300,6 +1462,15 @@ class PlannerFrame(tk.Frame):
             self.header_title.config(text=TRANSLATIONS[lang]["settings_title"])
             self.header_desc.config(text=TRANSLATIONS[lang]["settings_desc"])
             self.settings_panel.grid(row=0, column=0, sticky="nsew")
+        elif tab_name == "scratchpad":
+            self.header_title.config(text=TRANSLATIONS[lang]["scratchpad_title"])
+            self.header_desc.config(text=TRANSLATIONS[lang]["scratchpad_desc"])
+            self.scratchpad_panel.grid(row=0, column=0, sticky="nsew")
+            # Set focus to text widget on load
+            try:
+                self.scratchpad_text.focus_set()
+            except Exception:
+                pass
         elif tab_name == "credits":
             self.header_title.config(text=TRANSLATIONS[lang]["credits_title"])
             self.header_desc.config(text=TRANSLATIONS[lang]["credits_desc"])
@@ -1953,6 +2124,192 @@ class PlannerFrame(tk.Frame):
         )
         summary_btn.pack(side="left", padx=10)
 
+    def _build_scratchpad_panel(self):
+        self.scratchpad_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])
+        self.scratchpad_panel.grid_columnconfigure(0, weight=1)
+        self.scratchpad_panel.grid_rowconfigure(0, weight=1)
+
+        # Main wrapper card
+        card = tk.Frame(self.scratchpad_panel, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
+                        highlightthickness=1, bd=0)
+        card.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        card.grid_columnconfigure(0, weight=1)
+        card.grid_rowconfigure(1, weight=1)
+
+        lang = self.parent.current_lang
+
+        # Top Button controls bar inside card
+        controls_frame = tk.Frame(card, bg=self.theme["bg_card"])
+        controls_frame.grid(row=0, column=0, sticky="ew", padx=15, pady=(15, 10))
+
+        # Statistics Label
+        self.stats_var = tk.StringVar(value=TRANSLATIONS[lang]["scratchpad_stats"].format(0, 0, 0))
+        stats_lbl = tk.Label(controls_frame, textvariable=self.stats_var, font=("Segoe UI", 9, "bold"),
+                             bg=self.theme["bg_card"], fg=self.theme["text_muted"])
+        stats_lbl.pack(side="left")
+
+        # Action Buttons on Right
+        export_btn = create_flat_button(
+            controls_frame,
+            TRANSLATIONS[lang]["scratchpad_export_btn"],
+            self.theme["success"],
+            "#ffffff",
+            self._export_scratchpad_note,
+            hover_bg=self.theme["success_hover"]
+        )
+        export_btn.pack(side="right", padx=(10, 0))
+
+        clear_btn = create_flat_button(
+            controls_frame,
+            TRANSLATIONS[lang]["scratchpad_clear_btn"],
+            self.theme["danger"],
+            "#ffffff",
+            self._clear_scratchpad_note,
+            hover_bg=self.theme["danger_hover"]
+        )
+        clear_btn.pack(side="right")
+
+        # Text Area with scrollbar
+        text_container = tk.Frame(card, bg=self.theme["bg_card"])
+        text_container.grid(row=1, column=0, sticky="nsew", padx=15, pady=(0, 15))
+        text_container.grid_columnconfigure(0, weight=1)
+        text_container.grid_rowconfigure(0, weight=1)
+
+        # Custom scrollbar style
+        scrollbar = tk.Scrollbar(text_container, orient="vertical")
+        scrollbar.pack(side="right", fill="y")
+
+        self.scratchpad_text = tk.Text(
+            text_container,
+            font=("Consolas", 11) if self.current_theme_name == "dark" else ("Segoe UI", 11),
+            bg=self.theme["bg_main"],
+            fg=self.theme["text_primary"],
+            insertbackground=self.theme["text_primary"],
+            highlightbackground=self.theme["border"],
+            highlightthickness=1,
+            bd=0,
+            yscrollcommand=scrollbar.set,
+            wrap="word",
+            padx=10,
+            pady=10
+        )
+        self.scratchpad_text.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=self.scratchpad_text.yview)
+        bind_focus_highlight(self.scratchpad_text, self.theme)
+
+        # Load existing notes
+        notes_content = self.db.get_scratchpad(self.current_user["id"])
+        if notes_content:
+            self.scratchpad_text.insert("1.0", notes_content)
+        else:
+            # Show localized placeholder
+            placeholder = TRANSLATIONS[lang]["scratchpad_placeholder"]
+            self.scratchpad_text.insert("1.0", placeholder)
+            self.scratchpad_text.config(fg=self.theme["text_muted"])
+            self.scratchpad_placeholder_active = True
+
+        # Event binds for statistics and auto-save
+        self.scratchpad_text.bind("<KeyRelease>", self._on_scratchpad_key)
+        self.scratchpad_text.bind("<FocusIn>", self._on_scratchpad_focus_in)
+        self.scratchpad_text.bind("<FocusOut>", self._on_scratchpad_focus_out)
+
+        # Track if placeholder is active
+        if not notes_content:
+            self.scratchpad_placeholder_active = True
+        else:
+            self.scratchpad_placeholder_active = False
+            self._update_scratchpad_stats()
+
+    def _on_scratchpad_focus_in(self, event=None):
+        if getattr(self, "scratchpad_placeholder_active", False):
+            self.scratchpad_text.delete("1.0", "end-1c")
+            self.scratchpad_text.config(fg=self.theme["text_primary"])
+            self.scratchpad_placeholder_active = False
+
+    def _on_scratchpad_focus_out(self, event=None):
+        content = self.scratchpad_text.get("1.0", "end-1c").strip()
+        if not content:
+            lang = self.parent.current_lang
+            placeholder = TRANSLATIONS[lang]["scratchpad_placeholder"]
+            self.scratchpad_text.delete("1.0", "end-1c")
+            self.scratchpad_text.insert("1.0", placeholder)
+            self.scratchpad_text.config(fg=self.theme["text_muted"])
+            self.scratchpad_placeholder_active = True
+        else:
+            self._save_scratchpad_notes()
+
+    def _on_scratchpad_key(self, event=None):
+        if getattr(self, "scratchpad_placeholder_active", False):
+            return
+        self._update_scratchpad_stats()
+        self._save_scratchpad_notes()
+
+    def _update_scratchpad_stats(self):
+        if getattr(self, "scratchpad_placeholder_active", False):
+            word_count = 0
+            char_count = 0
+            para_count = 0
+        else:
+            text = self.scratchpad_text.get("1.0", "end-1c")
+            char_count = len(text)
+            words = text.split()
+            word_count = len(words)
+            paras = [p for p in text.split("\n") if p.strip()]
+            para_count = len(paras)
+
+        lang = self.parent.current_lang
+        self.stats_var.set(TRANSLATIONS[lang]["scratchpad_stats"].format(word_count, char_count, para_count))
+
+    def _save_scratchpad_notes(self):
+        if getattr(self, "scratchpad_placeholder_active", False):
+            content = ""
+        else:
+            content = self.scratchpad_text.get("1.0", "end-1c")
+        self.db.save_scratchpad(self.current_user["id"], content)
+
+    def _clear_scratchpad_note(self):
+        lang = self.parent.current_lang
+        title = TRANSLATIONS[lang]["scratchpad_clear_confirm_title"]
+        msg = TRANSLATIONS[lang]["scratchpad_clear_confirm_msg"]
+        play_click_sound()
+        if messagebox.askyesno(title, msg, parent=self):
+            self.scratchpad_text.delete("1.0", "end")
+            placeholder = TRANSLATIONS[lang]["scratchpad_placeholder"]
+            self.scratchpad_text.insert("1.0", placeholder)
+            self.scratchpad_text.config(fg=self.theme["text_muted"])
+            self.scratchpad_placeholder_active = True
+            self._update_scratchpad_stats()
+            self._save_scratchpad_notes()
+            play_success_sound()
+
+    def _export_scratchpad_note(self):
+        play_click_sound()
+        if getattr(self, "scratchpad_placeholder_active", False):
+            content = ""
+        else:
+            content = self.scratchpad_text.get("1.0", "end-1c")
+        if not content.strip():
+            play_error_sound()
+            return
+
+        from tkinter import filedialog
+        filename = filedialog.asksaveasfilename(
+            parent=self,
+            defaultextension=".txt",
+            filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")],
+            title="Export Study Note"
+        )
+        if filename:
+            try:
+                with open(filename, "w", encoding="utf-8") as f:
+                    f.write(content)
+                play_success_sound()
+                lang = self.parent.current_lang
+                messagebox.showinfo("Export Success", TRANSLATIONS[lang]["scratchpad_save_success"], parent=self)
+            except Exception as exc:
+                play_error_sound()
+                messagebox.showerror("Error", f"Failed to export note: {exc}", parent=self)
+
     def _build_credits_panel(self):
         self.credits_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])
         self.credits_panel.grid_columnconfigure(0, weight=1)
@@ -1962,82 +2319,108 @@ class PlannerFrame(tk.Frame):
 
         lang = self.parent.current_lang
 
-        # Centered credits card. grid(row=0,column=0) inside a fully weighted
-        # cell keeps the whole card centered both horizontally and vertically.
         card = tk.Frame(self.credits_panel, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
                         highlightthickness=1, bd=0)
         card.grid(row=0, column=0)
 
-        # Inner padding wrapper so every line is centered within the card.
         inner = tk.Frame(card, bg=self.theme["bg_card"])
-        inner.pack(padx=55, pady=35)
+        inner.pack(padx=56, pady=40)
 
-        # Application identity (from README)
-        app_lbl = tk.Label(inner, text="Smart Study Planner", font=("Segoe UI", 22, "bold"),
-                           bg=self.theme["bg_card"], fg=self.theme["primary"])
-        app_lbl.pack(pady=(0, 4))
+        # App identity
+        tk.Label(inner, text="Smart Study Planner", font=("Segoe UI", 26, "bold"),
+                 bg=self.theme["bg_card"], fg=self.theme["primary"]).pack(pady=(0, 4))
+        tk.Label(inner, text='Version 1.2.0 "Apex"', font=("Segoe UI", 11, "bold"),
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(pady=(0, 6))
+        tk.Label(inner,
+                 text="A secure, dual-interface desktop planner for managing\n"
+                      "academic coursework, deadlines, exams, and milestones.",
+                 font=("Segoe UI", 10), justify="center",
+                 bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(0, 18))
 
-        tagline_lbl = tk.Label(
-            inner,
-            text="A secure, dual-interface desktop planner for managing\n"
-                 "academic coursework, deadlines, exams, and milestones.",
-            font=("Segoe UI", 9), justify="center",
-            bg=self.theme["bg_card"], fg=self.theme["text_muted"])
-        tagline_lbl.pack(pady=(0, 14))
+        tk.Frame(inner, bg=self.theme["border"], height=1, width=560).pack(pady=(0, 18))
 
-        # Divider
-        tk.Frame(inner, bg=self.theme["border"], height=1, width=300).pack(pady=(0, 16))
+        tk.Label(inner, text="CONTRIBUTORS", font=("Segoe UI", 10, "bold"),
+                 bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(0, 14))
 
-        # Developer section header
-        tk.Label(inner, text="DEVELOPER", font=("Segoe UI", 9, "bold"),
-                 bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(0, 6))
+        # 2x2 contributor grid
+        CONTRIBUTORS = [
+            {
+                "name": "Mohammad Sufiyan Aasim",
+                "handle": "@SufiyanAasim",
+                "role": "System Architect · AI/MLOps · Documentation",
+                "email": "sufiyanaasim@outlook.com",
+                "github": "https://github.com/SufiyanAasim",
+            },
+            {
+                "name": "Fahad Bin Nasir",
+                "handle": "@FahadBinNasir",
+                "role": "Back-end Development",
+                "email": "fahadabbasi17025@gmail.com",
+                "github": "https://github.com/FahadBinNasir",
+            },
+            {
+                "name": "Ifrahim Yousuf",
+                "handle": "@ifrahim-yousaf",
+                "role": "UI/UX Designer · Front-end Development",
+                "email": "ifrahimsf@gmail.com",
+                "github": "https://github.com/ifrahim-yousaf",
+            },
+            {
+                "name": "Taha Siddiqui",
+                "handle": "@13eeCoder",
+                "role": "Networking & Cyber Security",
+                "email": "tahasiddiqui2100@gmail.com",
+                "github": "https://github.com/13eeCoder",
+            },
+        ]
 
-        # Author full name (from README)
-        name_lbl = tk.Label(inner, text="Mohammad Sufiyan Aasim", font=("Segoe UI", 17, "bold"),
-                            bg=self.theme["bg_card"], fg=self.theme["text_primary"])
-        name_lbl.pack(pady=(0, 2))
+        grid_frame = tk.Frame(inner, bg=self.theme["bg_card"])
+        grid_frame.pack()
 
-        # Role
-        role_lbl = tk.Label(inner, text="Lead Developer, UI Designer & System Architect", font=("Segoe UI", 10, "italic"),
-                            bg=self.theme["bg_card"], fg=self.theme["text_muted"])
-        role_lbl.pack(pady=(0, 16))
+        for idx, contributor in enumerate(CONTRIBUTORS):
+            row, col = divmod(idx, 2)
 
-        # Email
-        email_lbl = tk.Label(inner, text="sufiyanaasim@outlook.com", font=("Segoe UI", 12, "bold", "underline"),
-                             bg=self.theme["bg_card"], fg=self.theme["primary"], cursor="hand2")
-        email_lbl.pack()
-        email_lbl.bind("<Button-1>", lambda e: self._copy_email_to_clipboard())
+            cell = tk.Frame(grid_frame, bg=self.theme["bg_card"],
+                            highlightbackground=self.theme["border"], highlightthickness=1)
+            cell.grid(row=row, column=col, padx=10, pady=8, sticky="nsew", ipadx=22, ipady=18)
 
-        # Tooltip/Hint
-        copy_hint = tk.Label(inner, text=TRANSLATIONS[lang]["credits_copy_hint"], font=("Segoe UI", 8),
-                             bg=self.theme["bg_card"], fg=self.theme["text_muted"])
-        copy_hint.pack(pady=(2, 18))
+            tk.Label(cell, text=contributor["name"], font=("Segoe UI", 14, "bold"),
+                     bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(pady=(0, 3))
+            tk.Label(cell, text=contributor["role"], font=("Segoe UI", 9, "italic"),
+                     bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(0, 10))
 
-        # GitHub Profile link (using native styled flat button)
-        github_btn = create_flat_button(
-            inner,
-            TRANSLATIONS[lang]["credits_github_btn"],
-            self.theme["success"],
-            "#ffffff",
-            self._open_github,
-            hover_bg=self.theme["success_hover"]
-        )
-        github_btn.pack(pady=(0, 14))
+            email_lbl = tk.Label(cell, text=contributor["email"],
+                                 font=("Segoe UI", 10, "underline"),
+                                 bg=self.theme["bg_card"], fg=self.theme["primary"], cursor="hand2")
+            email_lbl.pack(pady=(0, 3))
+            email_lbl.bind("<Button-1>", lambda e, em=contributor["email"]: self._copy_email(em))
 
-        # Footer: license & handle (from README)
-        tk.Label(inner, text="@msufiyanpk  •  MIT License", font=("Segoe UI", 9),
-                 bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack()
+            tk.Label(cell, text=TRANSLATIONS[lang]["credits_copy_hint"], font=("Segoe UI", 8),
+                     bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(0, 10))
 
-    def _copy_email_to_clipboard(self):
+            create_flat_button(
+                cell,
+                TRANSLATIONS[lang]["credits_github_btn"],
+                self.theme["success"], "#ffffff",
+                lambda url=contributor["github"]: self._open_url(url),
+                hover_bg=self.theme["success_hover"],
+                font=("Segoe UI", 9, "bold"), padx=14, pady=6
+            ).pack()
+
+        tk.Frame(inner, bg=self.theme["border"], height=1, width=560).pack(pady=(20, 12))
+        tk.Label(inner, text="MIT License © 2026 Smart Study Planner Contributors",
+                 font=("Segoe UI", 9), bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack()
+
+    def _copy_email(self, email):
         self.parent.clipboard_clear()
-        self.parent.clipboard_append("sufiyanaasim@outlook.com")
+        self.parent.clipboard_append(email)
         self.parent.update()
         play_success_sound()
         messagebox.showinfo("Clipboard", TRANSLATIONS[self.parent.current_lang]["credits_email_copied"])
 
-    def _open_github(self):
+    def _open_url(self, url):
         import webbrowser
-        webbrowser.open_new_tab("https://github.com/msufiyanpk")
+        webbrowser.open_new_tab(url)
 
     def _build_timetable_panel(self):
         self.timetable_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])

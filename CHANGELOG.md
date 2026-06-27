@@ -1,148 +1,117 @@
 # Changelog
 
-All notable changes to the **Smart Study Planner** are documented in this file.
+All notable changes to Smart Study Planner are documented here.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [2.0.0] — "Polish & Motion" — 2026-06-26
-
-The second release is a UX, stability, and presentation overhaul. It keeps every
-v1.0.0 capability intact while making the application feel modern, alive, and
-production-ready.
+## [1.2.0] — "Apex" — 2026-06-28
 
 ### Added
-- **Animated interactive backgrounds.** A new performant, theme-aware
-  `ParticleCanvas` renders a drifting particle-constellation behind the
-  authentication screens (over the branding image), the Focus Timer, and the
-  Credits screen. The loop is capped (~25 fps), pauses when its screen is hidden,
-  and self-terminates on widget destruction — no extra image assets required.
-- **Bespoke sound design.** Custom-synthesized audio cues (`click`, `success`,
-  `error`, `notify`) generated into `assets/sounds/`, replacing raw system beeps.
-  Each helper falls back gracefully to a system alias if a file is unavailable.
-- **Sound enable/disable toggle.** A new *Sound & Feedback* card in
-  **Settings** turns interface audio on or off; the choice persists across runs.
-- **Faster sign-in.** The last identifier used on the machine is remembered and
-  prefilled on the login screen (stored in `data/app_prefs.json`), with focus
-  moved straight to the password field.
-- **Exit confirmation.** Closing via the window's X button or an in-app Exit
-  button now asks for confirmation first, preventing accidental shutdowns.
-- **Empty states.** Dedicated, translated empty-state messaging for the Tasks
-  workspace ("No tasks yet" vs. "No matching tasks"), the Insights dashboard, and
-  the Study Timetable.
-- **Redesigned Developer Credits screen.** Centered card sourced from the README:
-  app name, tagline, author, email, GitHub, and license.
-- **Two new languages — Arabic (العربية) and Persian (فارسی)** — bringing the
-  total to **12 fully translated languages**, including right-to-left scripts.
-- **Full localization of new strings** across all supported languages.
-- **Playable ambient soundscapes.** The Focus Timer's soundscapes (Lo-Fi, Rain,
-  White Noise, Ocean, Fireplace) are now real, seamlessly-looping audio with a
-  **Play/Pause** button and a **Volume** slider; the visualizer reacts to live
-  playback. (Bundled, synthesized loops in `assets/sounds/`.)
-- **Registered-accounts quick-pick on the login screen.** Click an account chip to
-  prefill the identifier and jump to the password field.
-- **Exit button in the dashboard sidebar**, directly beneath Log Out (confirmed).
-- **Update Profile card** in Profile Settings — edit Full Name, Username, and Email
-  (with validation and uniqueness checks); the sidebar refreshes instantly.
-- **Study group deletion** — selecting a group reveals a Delete button (hidden
-  otherwise) that removes the group, its members, and its shared tasks.
-- **Application icon** (`assets/icon.ico`) applied to the window, taskbar, and the
-  packaged executable (`--icon`).
-- **Eye (show/hide) toggles** on the New / Confirm password fields in Settings.
+- **Notes Scratchpad.** A distraction-free, sidebar-accessible note-taking workspace. Displays live word, character, and paragraph counts. Auto-saves per-user content to the SQLite database. Supports exporting drafts as `.txt` files. Fully translated across all 12 languages.
+- **Console-free packaged executable.** Built with `--noconsole` — double-clicking `SmartStudyPlanner.exe` opens the GUI directly without spawning a terminal window.
 
 ### Changed
-- **Language selector** is now a properly themed, aligned dropdown
-  (`ttk.Combobox`) on both the authentication screens and Settings, replacing the
-  previous ad-hoc menu button.
-- **Light/Dark theme toggle** is an enhanced, accent-bordered pill control,
-  consistently aligned with the language dropdown across all auth screens.
-- **Theme switching now preserves navigation state and form data** — toggling the
-  theme keeps you on the current screen (and keeps typed input) instead of
-  rebuilding back to the login view or the default tab.
-- **Timer completion** now plays the bespoke `notify` chime instead of a raw
-  `MessageBeep`.
-- **Authentication background** now uses the same theme-aware gradient
-  particle-constellation as the Focus Timer (no static image), so it adapts
-  cleanly to light and dark themes.
-- **Removed the redundant back arrow** on the Register screen (the "Back to Login"
-  link already covers it); the Recovery screen now relies on its top back arrow
-  instead of a clipped bottom link.
-- **Usernames are now always stored lowercase** (enforced live as you type and at
-  the database layer) — no mixed/sentence case.
-- **Sidebar button colours**: Log Out is amber and Exit is red, so the two are
-  clearly distinguishable.
-- **Aligned the Profile and Password cards** in Settings — fields and Save buttons
-  now line up on a shared label column.
+- `main.py` now launches the GUI by default unless `--cli` or `--menu` is passed.
+- Standard output reconfigured to UTF-8 to prevent charmap encoding errors on Windows terminals.
 
-### Fixed
-- **Focus Timer rendered blank.** The timer card was centered with `place()`
-  against the panel's initial 1×1 size, pushing it off-screen. Switched to
-  grid-centering so the entire timer UI (clock, mode buttons, soundscape dropdown,
-  Start/Reset) renders reliably.
-- **Register screen "theme bounce".** Toggling the theme on the Register or
-  Recovery screen reset the user back to the Login view and discarded entered
-  data. State is now captured and restored across the rebuild.
-- **Latent `TclError` crashes.** The Study Assistant typewriter animation and the timer audio
-  visualizer rescheduled `after()` callbacks that could fire against destroyed
-  widgets during theme switches or logout. Both now guard on `winfo_exists()`.
-- **Calendar (.ics) export crash.** The exporter treated each task's `deadline` as
-  a string, but it is a `date` object — so exporting always raised a `TypeError`.
-  It now formats `date` objects directly (with a string fallback).
-- **Invisible active sidebar tab in light mode.** The hover handler reset a
-  button's background to its creation-time colour, clobbering the active-tab
-  highlight (white-on-white). Resting colours are now mutable so the highlight
-  survives hover.
-- **Insights dashboard looked empty with no data.** Instead of a blank overlay,
-  the four charts now always render their headings and default 0 values.
-- **Sound effects could fail to play** when the app was launched from another
-  directory — asset paths now anchor to the project root, not the working dir.
-
-### Documentation
-- Consolidated the documentation set to **README**, **About** (full project
-  description), **CHANGELOG**, and **RELEASE_NOTES**, plus **LICENSE**. Removed the
-  legacy report draft and the `Course Work/` folder.
-- Updated the license to the MIT License © 2026 Mohammad Sufiyan Aasim.
-
-### Verification
-- All modules compile; the unit/integration test suite passes (5/5).
-- Dark and light themes verified by screenshot across the updated screens.
-- All 12 languages exercised across every panel with no runtime errors.
+### Improved
+- Repository restructured to professional open-source standard: source files moved to `src/`, full `docs/` hierarchy, `.github/` issue templates and CI workflows.
+- All source module headers updated to reflect current contributor roles.
+- Asset path resolution anchored to the project root, resolving a regression introduced by the `src/` move.
 
 ---
 
-## [1.0.0] — "Foundation" — 2026-06-25
-
-The initial release: a complete, secure, dual-interface academic planner.
+## [1.1.5] — "Horizon" — 2026-06-26
 
 ### Added
-- **Unified launch orchestrator** (`main.py`) offering CLI mode, GUI mode, or exit.
-- **Relational SQLite backend** with `users` and `tasks` tables and strict
-  per-user data isolation, plus user-specific JSON backups.
-- **Comprehensive security model:** PBKDF2-HMAC-SHA-256 password and
-  security-answer hashing (100k iterations, random salts), email/password/full-name
-  validation, and a security-question password recovery workflow.
-- **Rich task management (CRUD)** with title, description, priority, category,
-  deadline, and status, plus a query engine (search, status/priority/category
-  filters, multi-key sorting).
-- **Interactive dashboards:** CLI text stats and GUI canvas visualizations
-  (completion donut, priority bar chart, category bar chart, 5-day load line graph).
-- **Focus Pomodoro Timer** with work/break modes, ambient soundscape selection,
-  and an animated audio-wave visualizer.
-- **Local Study Assistant** with quick prompts and a typewriter streaming effect.
-- **Calendar export** to RFC-compliant, timezone-safe `.ics` files.
-- **Collaborative Study Groups** backed by relational tables, with a demo group,
-  member management, joint tasks, and scheduled sessions.
-- **Modern slate GUI** with Light/Dark theming, password visibility toggles, and a
-  responsive sidebar dashboard.
-- **10-language localization:** English, German, Spanish, French, Russian, Chinese,
-  Japanese, Korean, Hindi, and Urdu.
-- **CSV export** and a study-summary report generator in Settings.
-- **Automated test suite** covering hashing, registration, user isolation, and
-  task statistics.
+- **Animated particle-constellation backgrounds.** A `ParticleCanvas` renders a drifting, theme-aware background behind the authentication screens, Focus Timer, and Credits screen. Capped at ~25 fps, pauses when off-screen, uses no extra image assets.
+- **Bespoke sound design.** Custom-synthesized audio cues (`click`, `success`, `error`, `notify`) in `assets/sounds/`, replacing raw system beeps.
+- **Sound enable/disable toggle.** Settings → Sound & Feedback; preference persists across sessions.
+- **Last-identifier prefill.** The login screen remembers and prefills the last used username or email (stored in `data/app_prefs.json`), with focus moved to the password field.
+- **Exit confirmation.** Closing via the window X or an in-app Exit button asks for confirmation first.
+- **Empty states.** Dedicated translated messages for Tasks ("No tasks yet" / "No matching tasks"), Insights, and Study Timetable.
+- **Arabic (العربية) and Persian (فارسی)** — total localization now covers **12 languages**, including right-to-left script support.
+- **Playable ambient soundscapes.** Real, seamlessly-looping audio in the Focus Timer with Play/Pause, a Volume slider, and a live-reacting audio-wave visualizer.
+- **Registered-accounts quick-pick.** Click an account chip on the login screen to prefill the identifier.
+- **Exit button** in the dashboard sidebar (below Log Out), distinguished by color — Log Out is amber, Exit is red.
+- **Update Profile card** in Settings — edit Full Name, Username, and Email with validation and uniqueness checks; the sidebar refreshes instantly.
+- **Study group deletion** — removes the group, its members, and its shared tasks.
+- **Application icon** (`assets/icon.ico`) applied to the window, taskbar, and packaged executable.
+- **Eye (show/hide) toggles** on the New/Confirm password fields in Settings.
+
+### Changed
+- Language selector replaced with a properly themed `ttk.Combobox` on all auth screens and Settings.
+- Light/Dark theme toggle redesigned as an enhanced, accent-bordered pill control.
+- Theme switching now preserves the active screen and form data — no bounce back to login.
+- Timer completion plays the bespoke `notify` chime instead of a raw `MessageBeep`.
+- Authentication background uses the same particle-constellation as the Focus Timer.
+- Usernames are now always stored lowercase — enforced live and at the database layer.
+
+### Fixed
+- **Focus Timer rendered blank.** Switched from `place()` to grid-centering so the full timer UI renders reliably.
+- **Register/Recovery theme bounce.** Screen state is now captured and restored across the theme rebuild.
+- **Latent `TclError` crashes.** Study Assistant typewriter and timer audio visualizer now guard on `winfo_exists()` before rescheduling `after()` callbacks.
+- **Calendar `.ics` export `TypeError`.** Deadline `date` objects are now formatted directly instead of being treated as strings.
+- **Invisible active sidebar tab in light mode.** Resting colors are now mutable so the active-tab highlight survives hover.
+- **Insights dashboard blank with no data.** Charts now always render headings and default zero values.
+- **Sound effects silent when launched from another directory.** Asset paths now anchor to the project root.
 
 ---
 
-[2.0.0]: #200--polish--motion--2026-06-26
-[1.0.0]: #100--foundation--2026-06-25
+## [1.1.0] — "Genesis" — 2026-06-25
+
+### Added
+- Unified launch orchestrator (`main.py`) offering CLI mode, GUI mode, or exit.
+- Relational SQLite backend with `users` and `tasks` tables and strict per-user data isolation, plus user-specific JSON backups.
+- PBKDF2-HMAC-SHA-256 password and security-answer hashing (100k iterations, random salts).
+- Security-question password recovery workflow.
+- Email, password strength, and full-name validation.
+- Rich task CRUD — title, description, priority, category, deadline, and status.
+- Query engine: keyword search, status/priority/category filters, multi-key sorting.
+- CLI text stats, completion bars, priority/category counts, and study recommendations.
+- Dynamic canvas dashboards: completion donut, priority bar chart, category bar chart, 5-day load line graph.
+- Focus Pomodoro Timer (25-min work / 5-min break) with ambient soundscape selection and an animated audio-wave visualizer.
+- Local study assistant with quick prompts and typewriter streaming animation.
+- Collaborative Study Groups: member management, joint tasks, and scheduled sessions.
+- Calendar export to RFC-compliant `.ics` files.
+- CSV export and study-summary report generator in Settings.
+- 10-language localization: English, German, Spanish, French, Russian, Chinese, Japanese, Korean, Hindi, and Urdu.
+- Automated test suite covering hashing, registration, user isolation, and task statistics.
+
+---
+
+## [1.0.5] — "Momentum" — 2026-06-20
+
+### Added
+- First functional CLI build — registration, login, password recovery, and task CRUD operational end-to-end.
+- SQLite schema stabilized; per-user data isolation enforced at the query layer.
+- JSON task backup export working alongside the database.
+- Password strength validation and PBKDF2-HMAC-SHA-256 hashing integrated.
+- Basic Tkinter window scaffold with sidebar navigation and placeholder panels.
+
+### Fixed
+- Database initialization errors on first run when `data/` directory did not exist.
+- Hashing inconsistency between registration and login due to encoding mismatch.
+
+---
+
+## [1.0.0] — "Insight" — 2026-06-18
+
+> Pre-release. Internal development milestone — not publicly distributed.
+
+### Added
+- Initial project scaffold: `main.py` entry point, `database.py`, `models.py`, `logic.py`, `utils.py`.
+- SQLite database schema design for `users` and `tasks`.
+- Authentication proof-of-concept: register and login flow with plaintext verification (replaced in v1.0.5).
+- Task data model (`Task` dataclass) with serialization/deserialization.
+- Basic CLI loop for task entry and listing.
+
+---
+
+[1.2.0]: docs/releases/v1.2.0.md
+[1.1.5]: docs/releases/v1.1.5.md
+[1.1.0]: docs/releases/v1.1.0.md
+[1.0.5]: docs/releases/v1.0.5.md
+[1.0.0]: docs/releases/v1.0.0.md

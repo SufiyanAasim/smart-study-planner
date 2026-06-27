@@ -8,16 +8,24 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.pyo
 
 # Build and packaging
 .build/
 build/
 dist/
+*.spec.bak
 SmartStudyPlanner.exe
+SmartStudyPlanner-*.exe
 
-# Local data (databases, configs, user specific tasks export/json)
+# Local runtime data
 data/
 
 # Logs
 *.log
+_out.log
+_err.log
 
+# OS metadata
+.DS_Store
+Thumbs.db

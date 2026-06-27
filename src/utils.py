@@ -2,7 +2,7 @@
 utils.py
 Helper functions for reading user inputs safely from the terminal, validating dates
 and priorities, displaying text-based progress bars, and security utilities.
-Author: Mohammad Sufiyan Aasim (msufiyanpk)
+Author: Mohammad Sufiyan Aasim (SufiyanAasim)
 """
 
 import hashlib
@@ -301,5 +301,5 @@ def get_resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except AttributeError:
-        base_path = os.path.dirname(os.path.abspath(__file__))
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)

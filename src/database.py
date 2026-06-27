@@ -107,6 +107,15 @@ class DatabaseManager:
                 )
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS scratchpads (
+                    user_id INTEGER PRIMARY KEY,
+                    content TEXT,
+                    FOREIGN KEY(user_id) REFERENCES users(id)
+                )
+                """
+            )
             conn.commit()
         finally:
             conn.close()
@@ -578,3 +587,25 @@ class DatabaseManager:
             conn.commit()
         finally:
             conn.close()
+
+    def get_scratchpad(self, user_id):
+        """Load scratchpad content for a specific user."""
+        conn = sqlite3.connect(self.db_file)
+        try:
+            row = conn.execute("SELECT content FROM scratchpads WHERE user_id = ?", (user_id,)).fetchone()
+        finally:
+            conn.close()
+        return row[0] if row else ""
+
+    def save_scratchpad(self, user_id, content):
+        """Save/update scratchpad content for a specific user."""
+        conn = sqlite3.connect(self.db_file)
+        try:
+            conn.execute(
+                "INSERT OR REPLACE INTO scratchpads (user_id, content) VALUES (?, ?)",
+                (user_id, content)
+            )
+            conn.commit()
+        finally:
+            conn.close()
+        return True

@@ -1,10 +1,13 @@
 """
 main.py
 Main launcher and Terminal-based user interface for the Smart Study Planner.
-Author: Mohammad Sufiyan Aasim (msufiyanpk)
+Author: Mohammad Sufiyan Aasim (SufiyanAasim)
 """
 
 import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+
 from datetime import date
 from models import PRIORITY_LEVELS, DATE_FORMAT
 from logic import TaskManager
@@ -453,8 +456,8 @@ def run_gui_mode():
         traceback.print_exc()
 
 
-def main():
-    """Main orchestrator launcher menu."""
+def show_launcher_menu():
+    """Main orchestrator launcher menu (original fallback/manual menu)."""
     while True:
         print("\n================== SMART STUDY PLANNER ==================")
         print("  1. Launch CLI Mode (Terminal)")
@@ -470,6 +473,39 @@ def main():
         elif choice == "3":
             print("  Thank you for using the Smart Study Planner. Goodbye!")
             sys.exit(0)
+
+
+def main():
+    """Main launcher entry point."""
+    # Ensure stdout handles UTF-8 (emojis) correctly on Windows
+    if sys.stdout is not None:
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+        except Exception:
+            pass
+
+    # CLI flag detection
+    if "--cli" in sys.argv:
+        run_cli_mode()
+    elif "--menu" in sys.argv:
+        show_launcher_menu()
+    else:
+        # Default behavior: run GUI directly
+        try:
+            import gui
+            gui.main()
+        except Exception as exc:
+            if sys.stdout and sys.stdout.isatty():
+                print(f"  ! Failed to launch GUI: {exc}")
+                print("  Falling back to Launcher Menu...")
+                show_launcher_menu()
+            else:
+                try:
+                    from tkinter import messagebox
+                    messagebox.showerror("Error", f"Failed to launch Smart Study Planner GUI:\n{exc}")
+                except Exception:
+                    pass
+                sys.exit(1)
 
 
 if __name__ == "__main__":
