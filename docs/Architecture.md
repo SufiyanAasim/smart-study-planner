@@ -46,6 +46,7 @@ Smart Study Planner follows a layered desktop architecture with a clear separati
 | `src/database.py` | `DatabaseManager` — SQLite schema, all queries, user auth, hashing. |
 | `src/models.py` | `Task` dataclass, serialization/deserialization, constants. |
 | `src/utils.py` | Validation helpers, audio playback, resource path resolution. |
+| `src/lan.py` | `LANManager` — UDP broadcast discovery and room hosting for LAN study rooms. |
 | `src/translations.py` | Centralized 12-language translation dictionary. |
 
 ---
@@ -66,10 +67,11 @@ See [Database.md](Database.md) for the full schema.
 
 ---
 
-## LAN / Group Study (planned — v1.3.0)
+## LAN Study Rooms (v1.2.5)
 
-A `src/lan.py` module will add:
-- UDP broadcast on port 50505 for peer discovery.
-- TCP server on port 50506 for room data sync.
-- Host/join model: one peer hosts a study room, others join by discovery or direct IP.
-- Department and class tables in the database for member filtering.
+`src/lan.py` — `LANManager`:
+- UDP broadcast on port 50505 for peer/room discovery (no TCP required for v1.2.5).
+- Host model: one user hosts a named study room; the beacon includes room name, host name, department, class, and section.
+- Discovery: passive UDP listener strips stale rooms after 10 seconds of silence.
+- All network I/O runs in daemon threads; UI updates are dispatched via `Tk.after()`.
+- Department, class, section, and batch year are stored in the `users` table and shown in the sidebar, LAN room detail view, and study-room beacon.

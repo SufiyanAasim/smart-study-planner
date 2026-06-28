@@ -1,17 +1,18 @@
 # Roadmap
 
-## v1.3.0 — LAN & Campus (planned)
+## v1.2.5 — Apex ✅ Shipped
 
-- **LAN connectivity.** UDP peer discovery + TCP room sync. One user hosts a study room on the local network; others join by auto-discovery or direct IP.
-- **Department & class profiles.** Users select their department, batch, and class section during registration. Used for filtering group members and study rooms.
-- **Class Hub panel.** Shared timetable, class-wide tasks, and member list filtered by department/batch/section — a lightweight in-app LMS panel.
-- **Real-time group study.** Presence indicators, shared task updates, and a basic in-room chat over the LAN connection.
+- **LAN Study Rooms.** UDP broadcast discovery (port 50505). Host a named study room; peers on the same network see it within seconds. No server or account needed on the network layer.
+- **Academic Profile.** Department, Class/Batch, Section, and Batch Year fields on Registration and Settings. Shown in sidebar and LAN room beacons.
+- **LAN manager module.** `src/lan.py` — `LANManager` with daemon-thread I/O and stale-room eviction.
 
-## v1.4.0 — Intelligence (planned)
+## v1.3.0 — Intelligence (planned)
 
 - AI-assisted study scheduling based on deadline proximity and historical completion patterns.
 - Smart task prioritization suggestions.
 - Personalized study-load warnings.
+- Class Hub panel: shared timetable and class-wide tasks, filtered by department/batch/section.
+- Real-time LAN sync: shared task updates and basic in-room chat over the local network.
 
 ## Ongoing
 

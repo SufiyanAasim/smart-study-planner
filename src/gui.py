@@ -22,6 +22,7 @@ import json
 import os
 from database import DatabaseManager
 from translations import TRANSLATIONS
+import lan as lan_module
 
 DB_FILE = "data/planner.db"
 DATA_FILE_BASE = "data/tasks.json"
@@ -206,6 +207,96 @@ class ModernMessageBox(tk.Toplevel):
     def show(cls, parent, title, message, box_type="info"):
         dialog = cls(parent, title, message, box_type)
         return dialog.result
+
+
+class ModernInputDialog(tk.Toplevel):
+    """Themed single-line text-input dialog, consistent with ModernMessageBox."""
+
+    def __init__(self, parent, title, prompt, initialvalue=""):
+        if not parent:
+            try:
+                parent = tk._default_root
+            except Exception:
+                pass
+        super().__init__(parent)
+        self.title(title)
+        self.result = None
+
+        theme_name = "dark"
+        if parent:
+            if hasattr(parent, "current_theme_name"):
+                theme_name = parent.current_theme_name
+            elif hasattr(parent, "theme") and isinstance(parent.theme, dict):
+                if parent.theme.get("bg_main") == "#f8fafc":
+                    theme_name = "light"
+        self.theme = THEMES[theme_name]
+
+        self.configure(bg=self.theme["bg_card"])
+        self.resizable(False, False)
+        self.transient(parent)
+        self.grab_set()
+
+        self.update_idletasks()
+        w, h = 400, 200
+        if parent:
+            try:
+                px = parent.winfo_rootx() + parent.winfo_width() // 2 - w // 2
+                py = parent.winfo_rooty() + parent.winfo_height() // 2 - h // 2
+                self.geometry(f"{w}x{h}+{px}+{py}")
+            except Exception:
+                sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
+                self.geometry(f"{w}x{h}+{sw//2 - w//2}+{sh//2 - h//2}")
+        else:
+            sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
+            self.geometry(f"{w}x{h}+{sw//2 - w//2}+{sh//2 - h//2}")
+
+        main = tk.Frame(self, bg=self.theme["bg_card"])
+        main.pack(fill="both", expand=True, padx=22, pady=18)
+
+        tk.Label(main, text=prompt, font=("Segoe UI", 10), bg=self.theme["bg_card"],
+                 fg=self.theme["text_primary"], justify="left", anchor="w",
+                 wraplength=356).pack(anchor="w", pady=(0, 10))
+
+        self._entry = tk.Entry(main, font=("Segoe UI", 10), bg=self.theme["bg_main"],
+                               fg=self.theme["text_primary"],
+                               insertbackground=self.theme["text_primary"],
+                               highlightbackground=self.theme["border"],
+                               highlightthickness=1, bd=0, relief="flat")
+        self._entry.pack(fill="x", ipady=6)
+        if initialvalue:
+            self._entry.insert(0, str(initialvalue))
+            self._entry.select_range(0, "end")
+        bind_focus_highlight(self._entry, self.theme)
+
+        btn_row = tk.Frame(main, bg=self.theme["bg_card"])
+        btn_row.pack(fill="x", pady=(16, 0))
+
+        ok_btn = create_flat_button(btn_row, "OK", self.theme["primary"], "#ffffff",
+                                    self._on_ok, hover_bg=self.theme["primary_hover"], padx=20)
+        ok_btn.pack(side="left", padx=(0, 10))
+
+        cancel_btn = create_flat_button(btn_row, "Cancel", self.theme["border"],
+                                        self.theme["text_primary"], self._on_cancel,
+                                        hover_bg=self.theme["bg_main"], padx=20)
+        cancel_btn.pack(side="left")
+
+        self.bind("<Return>", lambda e: self._on_ok())
+        self.bind("<Escape>", lambda e: self._on_cancel())
+        self.protocol("WM_DELETE_WINDOW", self._on_cancel)
+        self._entry.focus_set()
+        self.wait_window()
+
+    def _on_ok(self):
+        self.result = self._entry.get()
+        self.destroy()
+
+    def _on_cancel(self):
+        self.result = None
+        self.destroy()
+
+    @classmethod
+    def ask(cls, parent, title, prompt, initialvalue=""):
+        return cls(parent, title, prompt, initialvalue).result
 
 
 class messagebox:
@@ -856,7 +947,7 @@ class AuthFrame(tk.Frame):
     def show_register_view(self):
         self.clear_card()
         self.mode = "register"
-        self.card.place(relx=0.5, rely=0.5, anchor="center", width=520, height=590)
+        self.card.place(relx=0.5, rely=0.5, anchor="center", width=520, height=740)
 
         # Aligned language dropdown + theme toggle (top-right). No back arrow here —
         # the "Back to Login" link at the bottom already covers that navigation.
@@ -958,8 +1049,69 @@ class AuthFrame(tk.Frame):
         tk.Label(form_container, text=TRANSLATIONS[lang]["security_answer_req"], font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
         self.reg_answer = tk.Entry(form_container, font=entry_font, bg=self.theme["bg_main"], fg=self.theme["text_primary"],
                                    highlightbackground=self.theme["border"], highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"])
-        self.reg_answer.pack(fill="x", ipady=3, pady=(0, 12))
+        self.reg_answer.pack(fill="x", ipady=3, pady=(0, 8))
         bind_focus_highlight(self.reg_answer, self.theme)
+
+        # Academic Info (optional)
+        sep_acad = tk.Frame(form_container, bg=self.theme["border"], height=1)
+        sep_acad.pack(fill="x", pady=(4, 6))
+
+        acad_hdr = tk.Frame(form_container, bg=self.theme["bg_card"])
+        acad_hdr.pack(fill="x", pady=(0, 4))
+        tk.Label(acad_hdr, text="Academic Info", font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(side="left")
+        tk.Label(acad_hdr, text=" — optional", font=("Segoe UI", 8),
+                 bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(side="left")
+
+        row_acad1 = tk.Frame(form_container, bg=self.theme["bg_card"])
+        row_acad1.pack(fill="x", pady=(0, 4))
+        row_acad1.columnconfigure(0, weight=1)
+        row_acad1.columnconfigure(1, weight=1)
+
+        dept_c = tk.Frame(row_acad1, bg=self.theme["bg_card"])
+        dept_c.grid(row=0, column=0, sticky="ew", padx=(0, 8))
+        tk.Label(dept_c, text="Department", font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
+        self.reg_department = tk.Entry(dept_c, font=entry_font, bg=self.theme["bg_main"],
+                                       fg=self.theme["text_primary"], highlightbackground=self.theme["border"],
+                                       highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"])
+        self.reg_department.pack(fill="x", ipady=3)
+        bind_focus_highlight(self.reg_department, self.theme)
+
+        class_c = tk.Frame(row_acad1, bg=self.theme["bg_card"])
+        class_c.grid(row=0, column=1, sticky="ew", padx=(8, 0))
+        tk.Label(class_c, text="Class / Batch", font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
+        self.reg_class_name = tk.Entry(class_c, font=entry_font, bg=self.theme["bg_main"],
+                                       fg=self.theme["text_primary"], highlightbackground=self.theme["border"],
+                                       highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"])
+        self.reg_class_name.pack(fill="x", ipady=3)
+        bind_focus_highlight(self.reg_class_name, self.theme)
+
+        row_acad2 = tk.Frame(form_container, bg=self.theme["bg_card"])
+        row_acad2.pack(fill="x", pady=(0, 10))
+        row_acad2.columnconfigure(0, weight=1)
+        row_acad2.columnconfigure(1, weight=1)
+
+        sec_c = tk.Frame(row_acad2, bg=self.theme["bg_card"])
+        sec_c.grid(row=0, column=0, sticky="ew", padx=(0, 8))
+        tk.Label(sec_c, text="Section", font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
+        self.reg_section = tk.Entry(sec_c, font=entry_font, bg=self.theme["bg_main"],
+                                    fg=self.theme["text_primary"], highlightbackground=self.theme["border"],
+                                    highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"])
+        self.reg_section.pack(fill="x", ipady=3)
+        bind_focus_highlight(self.reg_section, self.theme)
+
+        batch_c = tk.Frame(row_acad2, bg=self.theme["bg_card"])
+        batch_c.grid(row=0, column=1, sticky="ew", padx=(8, 0))
+        tk.Label(batch_c, text="Batch Year", font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
+        self.reg_batch_year = tk.Entry(batch_c, font=entry_font, bg=self.theme["bg_main"],
+                                       fg=self.theme["text_primary"], highlightbackground=self.theme["border"],
+                                       highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"])
+        self.reg_batch_year.pack(fill="x", ipady=3)
+        bind_focus_highlight(self.reg_batch_year, self.theme)
 
         # Register Button
         reg_btn = create_flat_button(form_container, TRANSLATIONS[lang]["register_btn"], self.theme["success"], "#ffffff",
@@ -1205,6 +1357,21 @@ class AuthFrame(tk.Frame):
             if self.parent.current_lang != "en":
                 self.db.change_language(user["id"], self.parent.current_lang)
                 user["language"] = self.parent.current_lang
+            # Save optional academic info
+            dept = getattr(self, "reg_department", None)
+            cls_entry = getattr(self, "reg_class_name", None)
+            sec_entry = getattr(self, "reg_section", None)
+            bat_entry = getattr(self, "reg_batch_year", None)
+            dept_val = dept.get().strip() if dept else ""
+            cls_val = cls_entry.get().strip() if cls_entry else ""
+            sec_val = sec_entry.get().strip() if sec_entry else ""
+            bat_val = bat_entry.get().strip() if bat_entry else ""
+            if any([dept_val, cls_val, sec_val, bat_val]):
+                self.db.update_academic_profile(user["id"], dept_val, cls_val, sec_val, bat_val)
+            user["department"] = dept_val
+            user["class_name"] = cls_val
+            user["section"] = sec_val
+            user["batch_year"] = bat_val
             play_success_sound()
             messagebox.showinfo("Success", TRANSLATIONS[lang]["msg_reg_success"])
             self.on_login_success(user)
@@ -1282,7 +1449,18 @@ class PlannerFrame(tk.Frame):
 
         user_email_lbl = tk.Label(self.sidebar, text=self.current_user["email"], font=("Segoe UI", 9),
                                   bg=self.theme["bg_card"], fg=self.theme["text_muted"], wraplength=210)
-        user_email_lbl.pack(padx=10, pady=(2, 10))
+        user_email_lbl.pack(padx=10, pady=(2, 2))
+
+        _acad_parts = [p for p in [
+            self.current_user.get("department", ""),
+            self.current_user.get("class_name", ""),
+            self.current_user.get("section", ""),
+        ] if p]
+        if _acad_parts:
+            tk.Label(self.sidebar, text=" · ".join(_acad_parts), font=("Segoe UI", 8),
+                     bg=self.theme["bg_card"], fg=self.theme["text_muted"], wraplength=210).pack(padx=10, pady=(0, 10))
+        else:
+            tk.Frame(self.sidebar, bg=self.theme["bg_card"], height=10).pack()
 
         lang = self.parent.current_lang
 
@@ -1392,6 +1570,10 @@ class PlannerFrame(tk.Frame):
         # Stop any ambient soundscape when navigating away from the Focus Timer.
         if tab_name != "timer" and getattr(self, "soundscape_playing", False):
             self._stop_soundscape()
+
+        # Stop LAN discovery when leaving the Groups panel.
+        if tab_name != "groups" and getattr(self, "_lan_manager", None) is not None:
+            self._stop_lan_discovery()
         self.active_tab = tab_name
         lang = self.parent.current_lang
         
@@ -1997,10 +2179,62 @@ class PlannerFrame(tk.Frame):
                                                hover_bg=self.theme["primary_hover"])
         save_profile_btn.grid(row=3, column=1, sticky="w", padx=10, pady=15)
 
+        # Academic Profile Card
+        acad_card = tk.Frame(self.settings_panel, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
+                             highlightthickness=1, bd=0)
+        acad_card.grid(row=1, column=0, sticky="ew", pady=10, padx=5)
+
+        tk.Label(acad_card, text="🎓 Academic Profile", font=("Segoe UI", 12, "bold"),
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", padx=20, pady=(15, 10))
+
+        acad_form = tk.Frame(acad_card, bg=self.theme["bg_card"])
+        acad_form.pack(fill="x", padx=20, pady=(0, 20))
+        acad_form.columnconfigure(0, minsize=170)
+
+        tk.Label(acad_form, text="Department", font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).grid(row=0, column=0, sticky="w", pady=5)
+        self.set_department = tk.Entry(acad_form, font=entry_font, bg=self.theme["bg_main"],
+                                       fg=self.theme["text_primary"], highlightbackground=self.theme["border"],
+                                       highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"], width=30)
+        self.set_department.grid(row=0, column=1, sticky="w", padx=10, pady=5)
+        self.set_department.insert(0, self.current_user.get("department", ""))
+        bind_focus_highlight(self.set_department, self.theme)
+
+        tk.Label(acad_form, text="Class / Batch", font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).grid(row=1, column=0, sticky="w", pady=5)
+        self.set_class_name = tk.Entry(acad_form, font=entry_font, bg=self.theme["bg_main"],
+                                       fg=self.theme["text_primary"], highlightbackground=self.theme["border"],
+                                       highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"], width=30)
+        self.set_class_name.grid(row=1, column=1, sticky="w", padx=10, pady=5)
+        self.set_class_name.insert(0, self.current_user.get("class_name", ""))
+        bind_focus_highlight(self.set_class_name, self.theme)
+
+        tk.Label(acad_form, text="Section", font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).grid(row=2, column=0, sticky="w", pady=5)
+        self.set_section = tk.Entry(acad_form, font=entry_font, bg=self.theme["bg_main"],
+                                    fg=self.theme["text_primary"], highlightbackground=self.theme["border"],
+                                    highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"], width=30)
+        self.set_section.grid(row=2, column=1, sticky="w", padx=10, pady=5)
+        self.set_section.insert(0, self.current_user.get("section", ""))
+        bind_focus_highlight(self.set_section, self.theme)
+
+        tk.Label(acad_form, text="Batch Year", font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).grid(row=3, column=0, sticky="w", pady=5)
+        self.set_batch_year = tk.Entry(acad_form, font=entry_font, bg=self.theme["bg_main"],
+                                       fg=self.theme["text_primary"], highlightbackground=self.theme["border"],
+                                       highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"], width=30)
+        self.set_batch_year.grid(row=3, column=1, sticky="w", padx=10, pady=5)
+        self.set_batch_year.insert(0, self.current_user.get("batch_year", ""))
+        bind_focus_highlight(self.set_batch_year, self.theme)
+
+        save_acad_btn = create_flat_button(acad_form, "💾 Save Academic Info", self.theme["primary"], "#ffffff",
+                                           self._on_update_academic_profile, hover_bg=self.theme["primary_hover"])
+        save_acad_btn.grid(row=4, column=1, sticky="w", padx=10, pady=15)
+
         # Change Password Card
         pwd_card = tk.Frame(self.settings_panel, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
                             highlightthickness=1, bd=0)
-        pwd_card.grid(row=1, column=0, sticky="ew", pady=10, padx=5)
+        pwd_card.grid(row=2, column=0, sticky="ew", pady=10, padx=5)
 
         tk.Label(pwd_card, text=TRANSLATIONS[lang]["change_pwd_card"], font=("Segoe UI", 12, "bold"),
                  bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", padx=20, pady=(15, 10))
@@ -2022,7 +2256,7 @@ class PlannerFrame(tk.Frame):
         # Language Settings Card
         lang_card = tk.Frame(self.settings_panel, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
                              highlightthickness=1, bd=0)
-        lang_card.grid(row=2, column=0, sticky="ew", pady=10, padx=5)
+        lang_card.grid(row=3, column=0, sticky="ew", pady=10, padx=5)
 
         tk.Label(lang_card, text=TRANSLATIONS[lang]["lang_pref_card"], font=("Segoe UI", 12, "bold"),
                  bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", padx=20, pady=(15, 10))
@@ -2062,7 +2296,7 @@ class PlannerFrame(tk.Frame):
         # Preferences Card (Sound effects toggle)
         pref_card = tk.Frame(self.settings_panel, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
                              highlightthickness=1, bd=0)
-        pref_card.grid(row=3, column=0, sticky="ew", pady=10, padx=5)
+        pref_card.grid(row=4, column=0, sticky="ew", pady=10, padx=5)
 
         tk.Label(pref_card, text=TRANSLATIONS[lang].get("sound_pref_card", "🔊 Sound & Feedback"),
                  font=("Segoe UI", 12, "bold"),
@@ -2088,7 +2322,7 @@ class PlannerFrame(tk.Frame):
         # Data Management & Academic Reports Card
         data_card = tk.Frame(self.settings_panel, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
                              highlightthickness=1, bd=0)
-        data_card.grid(row=4, column=0, sticky="ew", pady=10, padx=5)
+        data_card.grid(row=5, column=0, sticky="ew", pady=10, padx=5)
 
         tk.Label(data_card, text="📊 Academic Reports & Data Export", font=("Segoe UI", 12, "bold"),
                  bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", padx=20, pady=(15, 10))
@@ -2329,7 +2563,7 @@ class PlannerFrame(tk.Frame):
         # App identity
         tk.Label(inner, text="Smart Study Planner", font=("Segoe UI", 26, "bold"),
                  bg=self.theme["bg_card"], fg=self.theme["primary"]).pack(pady=(0, 4))
-        tk.Label(inner, text='Version 1.2.0 "Apex"', font=("Segoe UI", 11, "bold"),
+        tk.Label(inner, text='Version 1.2.5 "Apex"', font=("Segoe UI", 11, "bold"),
                  bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(pady=(0, 6))
         tk.Label(inner,
                  text="A secure, dual-interface desktop planner for managing\n"
@@ -3001,6 +3235,21 @@ class PlannerFrame(tk.Frame):
             play_error_sound()
             messagebox.showerror("Error", str(exc))
 
+    def _on_update_academic_profile(self):
+        dept = self.set_department.get().strip()
+        cls_name = self.set_class_name.get().strip()
+        section = self.set_section.get().strip()
+        batch_year = self.set_batch_year.get().strip()
+        self.db.update_academic_profile(self.current_user["id"], dept, cls_name, section, batch_year)
+        self.current_user["department"] = dept
+        self.current_user["class_name"] = cls_name
+        self.current_user["section"] = section
+        self.current_user["batch_year"] = batch_year
+        self.parent.current_user = self.current_user
+        play_success_sound()
+        messagebox.showinfo("Saved", "Academic profile updated successfully.")
+        self.parent._show_planner_panel(restore_tab="settings")
+
     def _on_change_password(self):
         old_pwd = self.set_pwd_old.get().strip()
         new_pwd = self.set_pwd_new.get().strip()
@@ -3411,7 +3660,7 @@ class PlannerFrame(tk.Frame):
     def _on_ai_quick_prompt(self, action):
         play_click_sound()
         if action == "explain":
-            concept = simpledialog.askstring("Explain Concept", "What scientific, math, or study concept should I explain?")
+            concept = ModernInputDialog.ask(self.parent, "Explain Concept", "What scientific, math, or study concept should I explain?")
             if concept and concept.strip():
                 self._append_to_chat("User", f"Explain the concept of: {concept.strip()}", "user_msg")
                 self.parent.after(400, lambda: self._generate_ai_response(f"explain {concept.strip()}"))
@@ -3419,7 +3668,7 @@ class PlannerFrame(tk.Frame):
             self._append_to_chat("User", "Generate a summary of my active task load.", "user_msg")
             self.parent.after(400, lambda: self._generate_ai_response("summarize"))
         elif action == "practice":
-            subject = simpledialog.askstring("Practice Questions", "Enter subject category (e.g. Physics, Calculus, Coding):")
+            subject = ModernInputDialog.ask(self.parent, "Practice Questions", "Enter subject category (e.g. Physics, Calculus, Coding):")
             if subject and subject.strip():
                 self._append_to_chat("User", f"Generate practice questions for: {subject.strip()}", "user_msg")
                 self.parent.after(400, lambda: self._generate_ai_response(f"practice {subject.strip()}"))
@@ -3493,13 +3742,44 @@ class PlannerFrame(tk.Frame):
 
     def _build_groups_panel(self):
         self.groups_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])
-        
-        self.groups_panel.grid_columnconfigure(0, weight=0, minsize=240)
-        self.groups_panel.grid_columnconfigure(1, weight=1)
-        self.groups_panel.grid_rowconfigure(0, weight=1)
+        self.groups_panel.grid_columnconfigure(0, weight=1)
+        self.groups_panel.grid_rowconfigure(1, weight=1)
 
-        left_pane = tk.Frame(self.groups_panel, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
-                             highlightthickness=1, bd=0)
+        # LAN manager instance (created when LAN tab is opened)
+        self._lan_manager = None
+        self._lan_discovered: dict = {}
+        self._lan_selected_ip = None
+        self._active_groups_tab = "my_groups"
+
+        # Tab strip
+        tab_bar = tk.Frame(self.groups_panel, bg=self.theme["bg_card"],
+                           highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
+        tab_bar.grid(row=0, column=0, sticky="ew", pady=(0, 8))
+
+        self._tab_btns = {}
+        for tab_key, label in [("my_groups", "My Study Groups"), ("lan_rooms", "🌐 LAN Study Rooms")]:
+            btn = tk.Button(tab_bar, text=label, font=("Segoe UI", 10, "bold"),
+                            bg=self.theme["bg_card"], fg=self.theme["text_muted"],
+                            relief="flat", bd=0, padx=18, pady=10, cursor="hand2",
+                            command=lambda k=tab_key: self._switch_groups_tab(k))
+            btn.pack(side="left")
+            self._tab_btns[tab_key] = btn
+
+        # Content frames (stacked at row=1)
+        self._groups_content = tk.Frame(self.groups_panel, bg=self.theme["bg_main"])
+        self._groups_content.grid(row=1, column=0, sticky="nsew")
+        self._groups_content.grid_columnconfigure(0, weight=0, minsize=240)
+        self._groups_content.grid_columnconfigure(1, weight=1)
+        self._groups_content.grid_rowconfigure(0, weight=1)
+
+        self._lan_content = tk.Frame(self.groups_panel, bg=self.theme["bg_main"])
+        self._lan_content.grid_columnconfigure(0, weight=0, minsize=240)
+        self._lan_content.grid_columnconfigure(1, weight=1)
+        self._lan_content.grid_rowconfigure(0, weight=1)
+
+        # Build My Groups content (into self._groups_content)
+        left_pane = tk.Frame(self._groups_content, bg=self.theme["bg_card"],
+                             highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
         left_pane.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
         left_pane.grid_rowconfigure(1, weight=1)
         left_pane.grid_columnconfigure(0, weight=1)
@@ -3514,22 +3794,228 @@ class PlannerFrame(tk.Frame):
         self.groups_listbox.bind("<<ListboxSelect>>", self._on_group_select)
 
         btn_create_grp = create_flat_button(left_pane, "Create New Group", self.theme["primary"], "#ffffff",
-                                            self._create_new_group, hover_bg=self.theme["primary_hover"], font=("Segoe UI", 9, "bold"))
+                                            self._create_new_group, hover_bg=self.theme["primary_hover"],
+                                            font=("Segoe UI", 9, "bold"))
         btn_create_grp.grid(row=2, column=0, sticky="ew", padx=15, pady=(15, 4))
 
-        # Delete button: only shown while a group is selected (see _on_group_select).
         self.btn_delete_grp = create_flat_button(left_pane, "🗑 Delete Group", self.theme["danger"], "#ffffff",
                                                  self._delete_selected_group, hover_bg=self.theme["danger_hover"],
                                                  font=("Segoe UI", 9, "bold"))
         self.btn_delete_grp.grid(row=3, column=0, sticky="ew", padx=15, pady=(0, 15))
         self.btn_delete_grp.grid_remove()
 
-        self.group_details_frame = tk.Frame(self.groups_panel, bg=self.theme["bg_main"])
+        self.group_details_frame = tk.Frame(self._groups_content, bg=self.theme["bg_main"])
         self.group_details_frame.grid(row=0, column=1, sticky="nsew")
         self.group_details_frame.grid_columnconfigure(0, weight=1)
         self.group_details_frame.grid_rowconfigure(0, weight=1)
 
         self._draw_group_details_placeholder()
+
+        # Build LAN content (into self._lan_content)
+        self._build_lan_content()
+
+        # Start on My Groups tab
+        self._switch_groups_tab("my_groups")
+
+    def _switch_groups_tab(self, tab_key):
+        self._active_groups_tab = tab_key
+        for key, btn in self._tab_btns.items():
+            if key == tab_key:
+                btn.config(fg=self.theme["primary"], font=("Segoe UI", 10, "bold"))
+            else:
+                btn.config(fg=self.theme["text_muted"], font=("Segoe UI", 10))
+
+        if tab_key == "my_groups":
+            self._lan_content.grid_remove()
+            self._groups_content.grid(row=1, column=0, sticky="nsew")
+            self._stop_lan_discovery()
+        else:
+            self._groups_content.grid_remove()
+            self._lan_content.grid(row=1, column=0, sticky="nsew")
+            self._start_lan_discovery()
+
+    # ── LAN Study Rooms ──────────────────────────────────────────────
+
+    def _build_lan_content(self):
+        # Left pane: discovered rooms list + host button
+        lan_left = tk.Frame(self._lan_content, bg=self.theme["bg_card"],
+                            highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
+        lan_left.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+        lan_left.grid_rowconfigure(2, weight=1)
+        lan_left.grid_columnconfigure(0, weight=1)
+
+        tk.Label(lan_left, text="LAN Study Rooms", font=("Segoe UI", 12, "bold"),
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).grid(row=0, column=0, sticky="w", padx=15, pady=(15, 2))
+
+        self._lan_status_lbl = tk.Label(lan_left, text="Searching on local network…",
+                                        font=("Segoe UI", 8), bg=self.theme["bg_card"],
+                                        fg=self.theme["text_muted"])
+        self._lan_status_lbl.grid(row=1, column=0, sticky="w", padx=15, pady=(0, 6))
+
+        self._lan_listbox = tk.Listbox(lan_left, bg=self.theme["bg_main"], fg=self.theme["text_primary"],
+                                       selectbackground=self.theme["primary"], selectforeground="#ffffff",
+                                       highlightthickness=0, bd=0, font=("Segoe UI", 10))
+        self._lan_listbox.grid(row=2, column=0, sticky="nsew", padx=15, pady=(0, 10))
+        self._lan_listbox.bind("<<ListboxSelect>>", self._on_lan_room_select)
+
+        self._lan_host_btn = create_flat_button(lan_left, "📡 Host a Study Room", self.theme["success"], "#ffffff",
+                                                self._on_host_room_clicked, hover_bg=self.theme["success_hover"],
+                                                font=("Segoe UI", 9, "bold"))
+        self._lan_host_btn.grid(row=3, column=0, sticky="ew", padx=15, pady=(0, 15))
+
+        # Right pane: selected room details
+        self._lan_detail_frame = tk.Frame(self._lan_content, bg=self.theme["bg_main"])
+        self._lan_detail_frame.grid(row=0, column=1, sticky="nsew")
+        self._lan_detail_frame.grid_columnconfigure(0, weight=1)
+        self._lan_detail_frame.grid_rowconfigure(0, weight=1)
+
+        self._draw_lan_placeholder()
+
+    def _draw_lan_placeholder(self):
+        for w in self._lan_detail_frame.winfo_children():
+            w.destroy()
+        tk.Label(self._lan_detail_frame,
+                 text="Select a room from the list, or host your own study room for others to join.",
+                 font=("Segoe UI", 11, "italic"), bg=self.theme["bg_main"],
+                 fg=self.theme["text_muted"], wraplength=400, justify="center").pack(expand=True)
+
+    def _draw_lan_hosting_view(self, room_name):
+        for w in self._lan_detail_frame.winfo_children():
+            w.destroy()
+        card = tk.Frame(self._lan_detail_frame, bg=self.theme["bg_card"],
+                        highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
+        card.pack(fill="both", expand=True, padx=10, pady=10)
+
+        tk.Label(card, text="📡  You are hosting", font=("Segoe UI", 11),
+                 bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(30, 6))
+        tk.Label(card, text=room_name, font=("Segoe UI", 18, "bold"),
+                 bg=self.theme["bg_card"], fg=self.theme["primary"]).pack(pady=(0, 10))
+
+        u = self.current_user
+        info_parts = [p for p in [u.get("department", ""), u.get("class_name", ""), u.get("section", "")] if p]
+        if info_parts:
+            tk.Label(card, text=" · ".join(info_parts), font=("Segoe UI", 10),
+                     bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(0, 20))
+
+        tk.Label(card, text="Peers on the same network can discover and join this room.",
+                 font=("Segoe UI", 9), bg=self.theme["bg_card"],
+                 fg=self.theme["text_muted"], wraplength=340).pack(pady=(0, 30))
+
+        stop_btn = create_flat_button(card, "■  Stop Hosting", self.theme["danger"], "#ffffff",
+                                      self._on_stop_hosting_clicked, hover_bg=self.theme["danger_hover"])
+        stop_btn.pack(ipadx=10, ipady=6)
+
+    def _draw_lan_room_detail(self, info):
+        for w in self._lan_detail_frame.winfo_children():
+            w.destroy()
+        card = tk.Frame(self._lan_detail_frame, bg=self.theme["bg_card"],
+                        highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
+        card.pack(fill="both", expand=True, padx=10, pady=10)
+
+        tk.Label(card, text=info.get("room", "Study Room"), font=("Segoe UI", 18, "bold"),
+                 bg=self.theme["bg_card"], fg=self.theme["primary"]).pack(pady=(30, 6))
+        tk.Label(card, text=f"Host: {info.get('host', '—')}", font=("Segoe UI", 11),
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack()
+
+        dept = info.get("department", "")
+        cls = info.get("class", "")
+        sec = info.get("section", "")
+        detail_parts = [p for p in [dept, cls, sec] if p]
+        if detail_parts:
+            tk.Label(card, text=" · ".join(detail_parts), font=("Segoe UI", 10),
+                     bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(4, 0))
+
+        tk.Label(card, text=f"IP: {info.get('_ip', '?')}", font=("Segoe UI", 8),
+                 bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(4, 24))
+
+        tk.Label(card, text="This room is broadcasting live on your local network.\nYou can coordinate over chat (voice/messaging app) while studying together.",
+                 font=("Segoe UI", 9), bg=self.theme["bg_card"],
+                 fg=self.theme["text_muted"], wraplength=340, justify="center").pack()
+
+    def _start_lan_discovery(self):
+        if self._lan_manager is not None:
+            return
+        self._lan_manager = lan_module.LANManager()
+        self._lan_manager.start_discovery(self._on_lan_rooms_updated_bg)
+
+    def _stop_lan_discovery(self):
+        if self._lan_manager is not None:
+            self._lan_manager.stop()
+            self._lan_manager = None
+
+    def _on_lan_rooms_updated_bg(self, rooms: dict):
+        # Called from the discovery background thread — schedule UI update on main thread.
+        try:
+            self.parent.after(0, lambda r=rooms: self._refresh_lan_listbox(r))
+        except Exception:
+            pass
+
+    def _refresh_lan_listbox(self, rooms: dict):
+        self._lan_discovered = rooms
+        self._lan_listbox.delete(0, "end")
+        if not rooms:
+            self._lan_status_lbl.config(text="No rooms found yet — searching…")
+        else:
+            n = len(rooms)
+            self._lan_status_lbl.config(text=f"{n} room{'s' if n != 1 else ''} found on your network")
+        for ip, info in rooms.items():
+            label = f"{info.get('room', '?')}  —  {info.get('host', ip)}"
+            dept = info.get("department", "")
+            cls = info.get("class", "")
+            if dept or cls:
+                label += f"  [{' · '.join(p for p in [dept, cls] if p)}]"
+            self._lan_listbox.insert("end", label)
+        # Keep detail pane in sync
+        if self._lan_selected_ip and self._lan_selected_ip not in rooms:
+            self._lan_selected_ip = None
+            if not (self._lan_manager and self._lan_manager.is_hosting):
+                self._draw_lan_placeholder()
+
+    def _on_lan_room_select(self, event=None):
+        sel = self._lan_listbox.curselection()
+        if not sel:
+            return
+        ips = list(self._lan_discovered.keys())
+        idx = sel[0]
+        if idx >= len(ips):
+            return
+        self._lan_selected_ip = ips[idx]
+        self._draw_lan_room_detail(self._lan_discovered[self._lan_selected_ip])
+
+    def _on_host_room_clicked(self):
+        if self._lan_manager and self._lan_manager.is_hosting:
+            messagebox.showinfo("Already Hosting",
+                                "You are already hosting a study room. Stop the current room first.")
+            return
+        room_name = ModernInputDialog.ask(self.parent, "Host Study Room",
+                                          "Enter a name for your study room:\n(e.g. 'OS Mid-term Prep')")
+        if not room_name or not room_name.strip():
+            return
+        room_name = room_name.strip()
+        u = self.current_user
+        if self._lan_manager is None:
+            self._lan_manager = lan_module.LANManager()
+            self._lan_manager.start_discovery(self._on_lan_rooms_updated_bg)
+        self._lan_manager.host_room(
+            room_name,
+            u.get("full_name", u.get("username", "Unknown")),
+            u.get("department", ""),
+            u.get("class_name", ""),
+            u.get("section", ""),
+        )
+        self._lan_host_btn.config(text="■ Stop Hosting", bg=self.theme["danger"],
+                                  command=self._on_stop_hosting_clicked)
+        self._lan_status_lbl.config(text=f"Hosting '{room_name}'")
+        play_success_sound()
+        self._draw_lan_hosting_view(room_name)
+
+    def _on_stop_hosting_clicked(self):
+        if self._lan_manager:
+            self._lan_manager.stop_hosting()
+        self._lan_host_btn.config(text="📡 Host a Study Room", bg=self.theme["success"],
+                                  command=self._on_host_room_clicked)
+        self._lan_status_lbl.config(text="Searching on local network…")
+        self._draw_lan_placeholder()
 
     def _draw_group_details_placeholder(self):
         for w in self.group_details_frame.winfo_children():
@@ -3678,7 +4164,7 @@ class PlannerFrame(tk.Frame):
 
     def _create_new_group(self):
         play_click_sound()
-        name = simpledialog.askstring("Create Group", "Enter the name of your new study group:")
+        name = ModernInputDialog.ask(self.parent, "Create Group", "Enter the name of your new study group:")
         if not name or not name.strip():
             return
             
@@ -3696,7 +4182,7 @@ class PlannerFrame(tk.Frame):
         if not self.selected_group_id:
             return
             
-        email = simpledialog.askstring("Add Member", "Enter student email address to add:")
+        email = ModernInputDialog.ask(self.parent, "Add Member", "Enter student email address to add:")
         if not email or not email.strip():
             return
             
@@ -3725,15 +4211,15 @@ class PlannerFrame(tk.Frame):
         if not self.selected_group_id:
             return
             
-        title = simpledialog.askstring("Group Task", "Enter task title:")
+        title = ModernInputDialog.ask(self.parent, "Group Task", "Enter task title:")
         if not title or not title.strip():
             return
-            
-        priority = simpledialog.askstring("Group Task Priority", "Enter priority (High, Medium, Low):", initialvalue="Medium")
+
+        priority = ModernInputDialog.ask(self.parent, "Group Task", "Priority (High, Medium, Low):", initialvalue="Medium")
         if priority not in ("High", "Medium", "Low"):
             priority = "Medium"
-            
-        deadline = simpledialog.askstring("Group Task Deadline", "Enter deadline (YYYY-MM-DD):", initialvalue=date.today().strftime("%Y-%m-%d"))
+
+        deadline = ModernInputDialog.ask(self.parent, "Group Task", "Deadline (YYYY-MM-DD):", initialvalue=date.today().strftime("%Y-%m-%d"))
         if not deadline:
             return
         if not parse_date(deadline):
@@ -3741,7 +4227,7 @@ class PlannerFrame(tk.Frame):
             messagebox.showerror("Error", "Invalid date format. Use YYYY-MM-DD.")
             return
 
-        category = simpledialog.askstring("Group Task Category", "Enter category (e.g. Study, Assignment, Project):", initialvalue="Study")
+        category = ModernInputDialog.ask(self.parent, "Group Task", "Category (e.g. Study, Assignment, Project):", initialvalue="Study")
         if not category:
             category = "Study"
 
@@ -3761,11 +4247,11 @@ class PlannerFrame(tk.Frame):
         if not self.selected_group_id:
             return
             
-        topic = simpledialog.askstring("Schedule Study Session", "Enter study session topic:")
+        topic = ModernInputDialog.ask(self.parent, "Schedule Study Session", "Enter study session topic:")
         if not topic or not topic.strip():
             return
-            
-        session_date = simpledialog.askstring("Session Date", "Enter date (YYYY-MM-DD):", initialvalue=date.today().strftime("%Y-%m-%d"))
+
+        session_date = ModernInputDialog.ask(self.parent, "Schedule Study Session", "Date (YYYY-MM-DD):", initialvalue=date.today().strftime("%Y-%m-%d"))
         if not session_date:
             return
         if not parse_date(session_date):
@@ -3773,7 +4259,7 @@ class PlannerFrame(tk.Frame):
             messagebox.showerror("Error", "Invalid date format. Use YYYY-MM-DD.")
             return
 
-        session_time = simpledialog.askstring("Session Time", "Enter time (e.g., 14:00, 16:30):", initialvalue="15:00")
+        session_time = ModernInputDialog.ask(self.parent, "Schedule Study Session", "Time (e.g., 14:00, 16:30):", initialvalue="15:00")
         if not session_time:
             session_time = "15:00"
 
@@ -3796,6 +4282,8 @@ class PlannerFrame(tk.Frame):
         lang = self.parent.current_lang
         if messagebox.askyesno("Log Out", TRANSLATIONS[lang]["msg_logout_confirm"]):
             stop_soundscape()
+            if getattr(self, "_lan_manager", None) is not None:
+                self._stop_lan_discovery()
             self.manager.save()
             self.on_logout_trigger()
 

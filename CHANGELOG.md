@@ -6,7 +6,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Thi
 
 ---
 
-## [1.2.0] — "Apex" — 2026-06-28
+## [1.2.5] — "Apex" — 2026-06-29
+
+### Added
+- **Academic Profile.** Registration and Settings now include Department, Class/Batch, Section, and Batch Year fields. Academic info is stored in the database, shown in the sidebar header, and attached to LAN room broadcasts.
+- **LAN Study Rooms panel.** A new tab inside Study Groups lets users host a named study room that broadcasts over UDP (port 50505). Peers on the same local network appear in a live-updating list — no configuration required.
+- **`src/lan.py` — LANManager.** Daemon-thread UDP discovery with a 10-second stale-room timeout. Room beacons include room name, host display name, department, class, and section.
+- **Room detail view.** Selecting a discovered room shows the host name and academic info. Hosting your own room shows a live-hosting card with a one-click Stop button.
+
+### Changed
+- Study Groups sidebar tab now contains two sub-tabs: **My Study Groups** and **🌐 LAN Study Rooms**.
+- LAN discovery pauses automatically when the user navigates away from the Groups panel or logs out.
+
+---
+
+## [1.2.0] — "Horizon" — 2026-06-28
 
 ### Added
 - **Notes Scratchpad.** A distraction-free, sidebar-accessible note-taking workspace. Displays live word, character, and paragraph counts. Auto-saves per-user content to the SQLite database. Supports exporting drafts as `.txt` files. Fully translated across all 12 languages.
@@ -23,7 +37,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Thi
 
 ---
 
-## [1.1.5] — "Horizon" — 2026-06-26
+## [1.1.5] — "Genesis" — 2026-06-26
 
 ### Added
 - **Animated particle-constellation backgrounds.** A `ParticleCanvas` renders a drifting, theme-aware background behind the authentication screens, Focus Timer, and Credits screen. Capped at ~25 fps, pauses when off-screen, uses no extra image assets.
@@ -60,7 +74,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Thi
 
 ---
 
-## [1.1.0] — "Genesis" — 2026-06-25
+## [1.1.0] — "Momentum" — 2026-06-25
 
 ### Added
 - Unified launch orchestrator (`main.py`) offering CLI mode, GUI mode, or exit.
@@ -82,7 +96,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Thi
 
 ---
 
-## [1.0.5] — "Momentum" — 2026-06-20
+## [1.0.5] — "Clarity" — 2026-06-20
 
 ### Added
 - First functional CLI build — registration, login, password recovery, and task CRUD operational end-to-end.
@@ -110,6 +124,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Thi
 
 ---
 
+[1.2.5]: docs/releases/v1.2.5.md
 [1.2.0]: docs/releases/v1.2.0.md
 [1.1.5]: docs/releases/v1.1.5.md
 [1.1.0]: docs/releases/v1.1.0.md

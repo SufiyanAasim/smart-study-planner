@@ -34,6 +34,17 @@ class DatabaseManager:
                     conn.execute("ALTER TABLE users ADD COLUMN language TEXT NOT NULL DEFAULT 'en'")
                     conn.commit()
 
+            # Add academic profile columns to existing databases that predate them.
+            users_exists = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
+            ).fetchone()
+            if users_exists:
+                existing_cols = [r[1] for r in conn.execute("PRAGMA table_info(users)").fetchall()]
+                for col in ("department", "class_name", "section", "batch_year"):
+                    if col not in existing_cols:
+                        conn.execute(f"ALTER TABLE users ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
+                conn.commit()
+
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS users (
@@ -47,7 +58,11 @@ class DatabaseManager:
                     security_answer_hash TEXT NOT NULL,
                     security_answer_salt TEXT NOT NULL,
                     language TEXT NOT NULL DEFAULT 'en',
-                    created_at TEXT NOT NULL DEFAULT CURRENT_DATE
+                    created_at TEXT NOT NULL DEFAULT CURRENT_DATE,
+                    department TEXT NOT NULL DEFAULT '',
+                    class_name TEXT NOT NULL DEFAULT '',
+                    section TEXT NOT NULL DEFAULT '',
+                    batch_year TEXT NOT NULL DEFAULT ''
                 )
                 """
             )
@@ -184,19 +199,19 @@ class DatabaseManager:
             user_id = cursor.lastrowid
             
             row = conn.execute(
-                "SELECT id, full_name, email, username, created_at, language FROM users WHERE id = ?",
+                """SELECT id, full_name, email, username, created_at, language,
+                          department, class_name, section, batch_year
+                   FROM users WHERE id = ?""",
                 (user_id,),
             ).fetchone()
         finally:
             conn.close()
 
         return {
-            "id": row[0],
-            "full_name": row[1],
-            "email": row[2],
-            "username": row[3],
-            "created_at": row[4],
-            "language": row[5],
+            "id": row[0], "full_name": row[1], "email": row[2],
+            "username": row[3], "created_at": row[4], "language": row[5],
+            "department": row[6] or "", "class_name": row[7] or "",
+            "section": row[8] or "", "batch_year": row[9] or "",
         }
 
     def update_user_profile(self, user_id, full_name, email, username):
@@ -227,7 +242,9 @@ class DatabaseManager:
             )
             conn.commit()
             row = conn.execute(
-                "SELECT id, full_name, email, username, created_at, language FROM users WHERE id = ?",
+                """SELECT id, full_name, email, username, created_at, language,
+                          department, class_name, section, batch_year
+                   FROM users WHERE id = ?""",
                 (user_id,),
             ).fetchone()
         finally:
@@ -235,7 +252,21 @@ class DatabaseManager:
         return {
             "id": row[0], "full_name": row[1], "email": row[2],
             "username": row[3], "created_at": row[4], "language": row[5],
+            "department": row[6] or "", "class_name": row[7] or "",
+            "section": row[8] or "", "batch_year": row[9] or "",
         }
+
+    def update_academic_profile(self, user_id, department, class_name, section, batch_year):
+        """Persist a user's academic info (dept / class / section / batch year)."""
+        conn = sqlite3.connect(self.db_file)
+        try:
+            conn.execute(
+                "UPDATE users SET department=?, class_name=?, section=?, batch_year=? WHERE id=?",
+                (department.strip(), class_name.strip(), section.strip(), batch_year.strip(), user_id),
+            )
+            conn.commit()
+        finally:
+            conn.close()
 
     def authenticate_user(self, login_credential, password):
         """Authenticate user by username or email. Return user dict on success, None otherwise."""
@@ -244,20 +275,22 @@ class DatabaseManager:
         try:
             row = conn.execute(
                 """
-                SELECT id, full_name, email, username, password_hash, salt, created_at, language 
-                FROM users 
+                SELECT id, full_name, email, username, password_hash, salt, created_at, language,
+                       department, class_name, section, batch_year
+                FROM users
                 WHERE LOWER(email) = LOWER(?) OR LOWER(username) = LOWER(?)
                 """,
                 (cred, cred),
             ).fetchone()
         finally:
             conn.close()
-            
+
         if not row:
             return None
 
-        user_id, full_name, email, username, stored_hash, salt, created_at, language = row
-        
+        (user_id, full_name, email, username, stored_hash, salt,
+         created_at, language, department, class_name, section, batch_year) = row
+
         # Verify password
         _, input_hash = utils.hash_password(password, salt)
         if input_hash != stored_hash:
@@ -270,6 +303,10 @@ class DatabaseManager:
             "username": username,
             "created_at": created_at,
             "language": language,
+            "department": department or "",
+            "class_name": class_name or "",
+            "section": section or "",
+            "batch_year": batch_year or "",
         }
 
     def list_users(self, limit=8):

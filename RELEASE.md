@@ -14,12 +14,12 @@ Use [Semantic Versioning](https://semver.org/):
 | New feature | MINOR |
 | Bug fix only | PATCH |
 
-Choose a codename from a single theme (Space series: Nova, Comet, Nebula, Polaris, …).
+Codenames follow a single consistent theme across all releases.
 
 Format:
 ```
 v1.3.0
-Codename: Nova
+Codename: Intelligence
 ```
 
 ---
@@ -28,8 +28,8 @@ Codename: Nova
 
 Update the version string in:
 - `src/gui.py` — Credits screen version label
-- `README.md` — version badge / header line
-- `CHANGELOG.md` — new section header
+- `README.md` — version badge
+- `CHANGELOG.md` — new section header and footer reference link
 
 ---
 
@@ -38,7 +38,7 @@ Update the version string in:
 Add a new section to `CHANGELOG.md` following the [Keep a Changelog](https://keepachangelog.com/) format:
 
 ```markdown
-## [4.0.0] — "Nova" — YYYY-MM-DD
+## [1.3.0] — "Intelligence" — YYYY-MM-DD
 
 ### Added
 ### Changed
@@ -52,7 +52,7 @@ Add a new section to `CHANGELOG.md` following the [Keep a Changelog](https://kee
 
 ## 4. Write the release doc
 
-Create `docs/releases/v1.3.0.md` using the template in any existing release file as a reference. Include: codename, highlights, full categorized change list, and compatibility table.
+Create `docs/releases/v1.3.0.md` using any existing release file as a template. Include: codename, release type, overview, full categorized change list, and compatibility table.
 
 ---
 
@@ -70,14 +70,14 @@ All tests must pass before tagging.
 
 ```bash
 git add -A
-git commit -m "release: v1.3.0 - Nova"
+git commit -m "release: v1.3.0 - Intelligence"
 git tag v1.3.0
 git push origin main --tags
 ```
 
 Include co-authors in the commit message if applicable:
 ```
-release: v4.0.0 - Nova
+release: v1.3.0 - Intelligence
 
 Co-authored-by: Contributor Name <their-github-registered-email@example.com>
 ```
@@ -86,7 +86,7 @@ Co-authored-by: Contributor Name <their-github-registered-email@example.com>
 
 ## 7. GitHub release
 
-Create a GitHub release from tag `v4.0.0`. Paste the contents of `docs/releases/v4.0.0.md` into the release body. Attach `SmartStudyPlanner.exe` as a release asset, named:
+Create a GitHub release from tag `v1.3.0`. Paste the contents of `docs/releases/v1.3.0.md` into the release body. Attach `SmartStudyPlanner.exe` as a release asset, named:
 
 ```
 SmartStudyPlanner-v1.3.0-windows-x64.exe
@@ -96,4 +96,4 @@ SmartStudyPlanner-v1.3.0-windows-x64.exe
 
 ## 8. Update ROADMAP.md
 
-Move the shipped items out of the roadmap and into the changelog reference.
+Mark the shipped version as ✅ Shipped and promote the next planned version.
