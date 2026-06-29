@@ -24,7 +24,7 @@ jobs:
           pip install pyinstaller
 
       - name: Build executable
-        run: python -m PyInstaller SmartStudyPlanner.spec
+        run: python -m PyInstaller SmartStudyPlanner.spec --distpath .
 
       - name: Rename artifact
         shell: pwsh
