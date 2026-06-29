@@ -13,6 +13,7 @@ __pycache__/
 # Build and packaging
 .build/
 build/
+build_temp/
 dist/
 *.spec.bak
 SmartStudyPlanner.exe
