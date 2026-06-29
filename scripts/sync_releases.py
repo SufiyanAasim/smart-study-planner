@@ -88,7 +88,7 @@ def detect_repo():
     # Handle https: https://github.com/owner/repo.git or https://github.com/owner/repo
     url = remote_url.replace(".git", "")
     if "github.com" in url:
-        if ":" in url:
+        if "github.com:" in url:
             parts = url.split("github.com:")[-1]
         else:
             parts = url.split("github.com/")[-1]
@@ -162,6 +162,13 @@ def upload_asset(upload_url, file_path, filename, token):
         return 0, {"message": str(e)}
 
 def main():
+    # Ensure stdout handles UTF-8 (emojis and dashes) correctly on Windows
+    if sys.stdout is not None:
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+        except Exception:
+            pass
+
     parser = argparse.ArgumentParser(description="Synchronize project release notes to GitHub Releases.")
     parser.add_argument("--dry-run", action="store_true", help="Print actions instead of performing requests.")
     parser.add_argument("--token", help="GitHub Personal Access Token (PAT).")
