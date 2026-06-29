@@ -15,13 +15,14 @@ class DatabaseManager:
         folder = os.path.dirname(self.db_file)
         if folder and not os.path.exists(folder):
             os.makedirs(folder)
-        
+
         conn = sqlite3.connect(self.db_file)
         try:
             # Check if columns are already updated. If users exists but has no 'email', it's the old schema.
-            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+            cursor = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
             table_exists = cursor.fetchone()
-            
+
             if table_exists:
                 info_cursor = conn.execute("PRAGMA table_info(users)")
                 columns = [row[1] for row in info_cursor.fetchall()]
@@ -31,7 +32,8 @@ class DatabaseManager:
                     conn.execute("DROP TABLE IF EXISTS users")
                     conn.commit()
                 elif "language" not in columns:
-                    conn.execute("ALTER TABLE users ADD COLUMN language TEXT NOT NULL DEFAULT 'en'")
+                    conn.execute(
+                        "ALTER TABLE users ADD COLUMN language TEXT NOT NULL DEFAULT 'en'")
                     conn.commit()
 
             # Add academic profile columns to existing databases that predate them.
@@ -39,10 +41,12 @@ class DatabaseManager:
                 "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
             ).fetchone()
             if users_exists:
-                existing_cols = [r[1] for r in conn.execute("PRAGMA table_info(users)").fetchall()]
+                existing_cols = [r[1] for r in conn.execute(
+                    "PRAGMA table_info(users)").fetchall()]
                 for col in ("department", "class_name", "section", "batch_year"):
                     if col not in existing_cols:
-                        conn.execute(f"ALTER TABLE users ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
+                        conn.execute(
+                            f"ALTER TABLE users ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
                 conn.commit()
 
             conn.execute(
@@ -139,7 +143,8 @@ class DatabaseManager:
         """Returns True if the email already exists in the database."""
         conn = sqlite3.connect(self.db_file)
         try:
-            row = conn.execute("SELECT 1 FROM users WHERE LOWER(email) = LOWER(?)", (email.strip(),)).fetchone()
+            row = conn.execute(
+                "SELECT 1 FROM users WHERE LOWER(email) = LOWER(?)", (email.strip(),)).fetchone()
         finally:
             conn.close()
         return row is not None
@@ -150,7 +155,8 @@ class DatabaseManager:
             return False
         conn = sqlite3.connect(self.db_file)
         try:
-            row = conn.execute("SELECT 1 FROM users WHERE LOWER(username) = LOWER(?)", (username.strip(),)).fetchone()
+            row = conn.execute(
+                "SELECT 1 FROM users WHERE LOWER(username) = LOWER(?)", (username.strip(),)).fetchone()
         finally:
             conn.close()
         return row is not None
@@ -161,7 +167,7 @@ class DatabaseManager:
         # Usernames are always stored lowercase (no mixed/sentence case).
         username_clean = username.strip().lower() if username and username.strip() else None
         full_name_clean = full_name.strip()
-        
+
         # Unique constraints checks
         if self.check_duplicate_email(email_clean):
             raise ValueError("Email is already registered.")
@@ -180,7 +186,7 @@ class DatabaseManager:
             cursor = conn.execute(
                 """
                 INSERT INTO users (
-                    full_name, email, username, password_hash, salt, 
+                    full_name, email, username, password_hash, salt,
                     security_question, security_answer_hash, security_answer_salt
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -197,7 +203,7 @@ class DatabaseManager:
             )
             conn.commit()
             user_id = cursor.lastrowid
-            
+
             row = conn.execute(
                 """SELECT id, full_name, email, username, created_at, language,
                           department, class_name, section, batch_year
@@ -228,7 +234,8 @@ class DatabaseManager:
                 (email_clean, user_id),
             ).fetchone()
             if dup_email:
-                raise ValueError("That email is already used by another account.")
+                raise ValueError(
+                    "That email is already used by another account.")
             if username_clean:
                 dup_user = conn.execute(
                     "SELECT 1 FROM users WHERE LOWER(username) = LOWER(?) AND id != ?",
@@ -262,7 +269,8 @@ class DatabaseManager:
         try:
             conn.execute(
                 "UPDATE users SET department=?, class_name=?, section=?, batch_year=? WHERE id=?",
-                (department.strip(), class_name.strip(), section.strip(), batch_year.strip(), user_id),
+                (department.strip(), class_name.strip(),
+                 section.strip(), batch_year.strip(), user_id),
             )
             conn.commit()
         finally:
@@ -330,7 +338,8 @@ class DatabaseManager:
         """Get security question for a given email address."""
         conn = sqlite3.connect(self.db_file)
         try:
-            row = conn.execute("SELECT security_question FROM users WHERE LOWER(email) = LOWER(?)", (email.strip(),)).fetchone()
+            row = conn.execute(
+                "SELECT security_question FROM users WHERE LOWER(email) = LOWER(?)", (email.strip(),)).fetchone()
         finally:
             conn.close()
         return row[0] if row else None
@@ -344,8 +353,8 @@ class DatabaseManager:
         try:
             row = conn.execute(
                 """
-                SELECT id, security_question, security_answer_hash, security_answer_salt 
-                FROM users 
+                SELECT id, security_question, security_answer_hash, security_answer_salt
+                FROM users
                 WHERE LOWER(email) = LOWER(?)
                 """,
                 (email_clean,),
@@ -360,7 +369,8 @@ class DatabaseManager:
                 raise ValueError("Security question does not match.")
 
             # Verify security answer
-            _, input_sec_hash = utils.hash_password(sec_answer_clean, stored_sec_salt)
+            _, input_sec_hash = utils.hash_password(
+                sec_answer_clean, stored_sec_salt)
             if input_sec_hash != stored_sec_hash:
                 raise ValueError("Incorrect security answer.")
 
@@ -423,16 +433,16 @@ class DatabaseManager:
         try:
             rows = conn.execute(
                 """
-                SELECT task_id, title, description, priority, category, deadline, status, created_at 
-                FROM tasks 
-                WHERE user_id = ? 
+                SELECT task_id, title, description, priority, category, deadline, status, created_at
+                FROM tasks
+                WHERE user_id = ?
                 ORDER BY task_id
                 """,
                 (user_id,),
             ).fetchall()
         finally:
             conn.close()
-            
+
         tasks = []
         for row in rows:
             task_id, title, description, priority, category, deadline, status, created_at = row
@@ -454,7 +464,8 @@ class DatabaseManager:
         """Update a user's interface language preference in the database."""
         conn = sqlite3.connect(self.db_file)
         try:
-            conn.execute("UPDATE users SET language = ? WHERE id = ?", (language, user_id))
+            conn.execute(
+                "UPDATE users SET language = ? WHERE id = ?", (language, user_id))
             conn.commit()
         finally:
             conn.close()
@@ -488,8 +499,10 @@ class DatabaseManager:
             ).fetchone()
             if not member:
                 raise ValueError("You can only delete groups you belong to.")
-            conn.execute("DELETE FROM group_tasks WHERE group_id = ?", (group_id,))
-            conn.execute("DELETE FROM group_members WHERE group_id = ?", (group_id,))
+            conn.execute(
+                "DELETE FROM group_tasks WHERE group_id = ?", (group_id,))
+            conn.execute(
+                "DELETE FROM group_members WHERE group_id = ?", (group_id,))
             conn.execute("DELETE FROM study_groups WHERE id = ?", (group_id,))
             conn.commit()
         finally:
@@ -499,9 +512,11 @@ class DatabaseManager:
     def add_group_member_by_email(self, group_id, email):
         conn = sqlite3.connect(self.db_file)
         try:
-            user = conn.execute("SELECT id FROM users WHERE LOWER(email) = LOWER(?)", (email.strip(),)).fetchone()
+            user = conn.execute(
+                "SELECT id FROM users WHERE LOWER(email) = LOWER(?)", (email.strip(),)).fetchone()
             if not user:
-                raise ValueError("No registered user found with that email address.")
+                raise ValueError(
+                    "No registered user found with that email address.")
             user_id = user[0]
             conn.execute(
                 "INSERT OR IGNORE INTO group_members (group_id, user_id) VALUES (?, ?)",
@@ -579,7 +594,8 @@ class DatabaseManager:
                 INSERT INTO group_tasks (group_id, title, description, priority, category, deadline)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
-                (group_id, title.strip(), description.strip(), priority, category, deadline)
+                (group_id, title.strip(), description.strip(),
+                 priority, category, deadline)
             )
             conn.commit()
         finally:
@@ -590,28 +606,32 @@ class DatabaseManager:
         conn = sqlite3.connect(self.db_file)
         try:
             # Check if user has any groups
-            cursor = conn.execute("SELECT 1 FROM group_members WHERE user_id = ?", (user_id,))
+            cursor = conn.execute(
+                "SELECT 1 FROM group_members WHERE user_id = ?", (user_id,))
             if cursor.fetchone():
                 return
-            
+
             # Create "Global Study Circle"
             cursor = conn.execute(
                 "INSERT INTO study_groups (name, creator_id) VALUES (?, ?)",
                 ("Global Study Circle", user_id)
             )
             group_id = cursor.lastrowid
-            
+
             # Add user as member
             conn.execute(
                 "INSERT OR IGNORE INTO group_members (group_id, user_id) VALUES (?, ?)",
                 (group_id, user_id)
             )
-            
+
             # Add some group tasks
             group_tasks = [
-                ("Physics Exam Study Session", "Prepare review sheets for chapters 4-6", "High", "Exam", (date.today() + timedelta(days=3)).strftime("%Y-%m-%d")),
-                ("Group Essay Feedback", "Review introductory thesis drafts together", "Medium", "Study", (date.today() + timedelta(days=5)).strftime("%Y-%m-%d")),
-                ("Programming Assignment Lab", "Debug memory leak in group code repository", "High", "Project", (date.today() + timedelta(days=7)).strftime("%Y-%m-%d"))
+                ("Physics Exam Study Session", "Prepare review sheets for chapters 4-6",
+                 "High", "Exam", (date.today() + timedelta(days=3)).strftime("%Y-%m-%d")),
+                ("Group Essay Feedback", "Review introductory thesis drafts together",
+                 "Medium", "Study", (date.today() + timedelta(days=5)).strftime("%Y-%m-%d")),
+                ("Programming Assignment Lab", "Debug memory leak in group code repository",
+                 "High", "Project", (date.today() + timedelta(days=7)).strftime("%Y-%m-%d"))
             ]
             for title, desc, priority, category, deadline in group_tasks:
                 conn.execute(
@@ -629,7 +649,8 @@ class DatabaseManager:
         """Load scratchpad content for a specific user."""
         conn = sqlite3.connect(self.db_file)
         try:
-            row = conn.execute("SELECT content FROM scratchpads WHERE user_id = ?", (user_id,)).fetchone()
+            row = conn.execute(
+                "SELECT content FROM scratchpads WHERE user_id = ?", (user_id,)).fetchone()
         finally:
             conn.close()
         return row[0] if row else ""

@@ -1,7 +1,7 @@
 """
 models.py
-This file defines our core Task data class. It handles representing a single 
-study task (like physics lab, essays, etc.) and serialization/deserialization 
+This file defines our core Task data class. It handles representing a single
+study task (like physics lab, essays, etc.) and serialization/deserialization
 for saving it.
 Author: Mohammad Sufiyan Aasim (SufiyanAasim)
 """
@@ -78,5 +78,6 @@ class Task:
             category=data.get("category", "Study"),
             deadline=datetime.strptime(data["deadline"], DATE_FORMAT).date(),
             status=data["status"],
-            created_at=datetime.strptime(data["created_at"], DATE_FORMAT).date(),
+            created_at=datetime.strptime(
+                data["created_at"], DATE_FORMAT).date(),
         )

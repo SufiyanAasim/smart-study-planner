@@ -266,28 +266,28 @@ See [SECURITY.md](SECURITY.md) to report a vulnerability.
   <tr>
     <td align="center">
       <a href="https://github.com/SufiyanAasim">
-        <img src="https://github.com/SufiyanAasim.png" width="72" style="border-radius:50%" alt="SufiyanAasim"/><br/>
+        <img src="https://github.com/SufiyanAasim.png" width="72" alt="SufiyanAasim"/><br/>
         <sub><b>Mohammad Sufiyan Aasim</b></sub>
       </a><br/>
       <sub>System Architect · AI/MLOps · Docs</sub>
     </td>
     <td align="center">
       <a href="https://github.com/FahadBinNasir">
-        <img src="https://github.com/FahadBinNasir.png" width="72" style="border-radius:50%" alt="FahadBinNasir"/><br/>
+        <img src="https://github.com/FahadBinNasir.png" width="72" alt="FahadBinNasir"/><br/>
         <sub><b>Fahad Bin Nasir</b></sub>
       </a><br/>
       <sub>Back-end Development</sub>
     </td>
     <td align="center">
-      <a href="https://github.com/ifrahim-yousaf">
-        <img src="https://github.com/ifrahim-yousaf.png" width="72" style="border-radius:50%" alt="ifrahim-yousaf"/><br/>
+      <a href="https://github.com/Ifrahim-yousuf">
+        <img src="https://github.com/Ifrahim-yousuf.png" width="72" alt="Ifrahim-yousuf"/><br/>
         <sub><b>Ifrahim Yousuf</b></sub>
       </a><br/>
       <sub>UI/UX · Front-end · Animations</sub>
     </td>
     <td align="center">
       <a href="https://github.com/13eeCoder">
-        <img src="https://github.com/13eeCoder.png" width="72" style="border-radius:50%" alt="13eeCoder"/><br/>
+        <img src="https://github.com/13eeCoder.png" width="72" alt="13eeCoder"/><br/>
         <sub><b>Taha Siddiqui</b></sub>
       </a><br/>
       <sub>Networking · Cyber Security</sub>

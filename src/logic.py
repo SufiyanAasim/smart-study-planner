@@ -18,13 +18,14 @@ class TaskManager:
         self.db_file = db_file
         self.user_id = user_id
         self.db = DatabaseManager(db_file) if db_file else None
-        
+
         # User isolation: Use user-specific backup JSON path
         if user_id is not None:
             dir_name = os.path.dirname(data_file_base)
             base_name = os.path.basename(data_file_base)
             name_part, ext_part = os.path.splitext(base_name)
-            self.data_file = os.path.join(dir_name, f"{name_part}_user_{user_id}{ext_part}")
+            self.data_file = os.path.join(
+                dir_name, f"{name_part}_user_{user_id}{ext_part}")
         else:
             self.data_file = data_file_base
 
@@ -187,7 +188,8 @@ class TaskManager:
             os.makedirs(folder)
         try:
             with open(self.data_file, "w", encoding="utf-8") as file_object:
-                json.dump([task.to_dict() for task in self.tasks], file_object, indent=4)
+                json.dump([task.to_dict()
+                          for task in self.tasks], file_object, indent=4)
         except OSError:
             pass  # Fail-safe backup saving
 
@@ -216,7 +218,8 @@ class TaskManager:
                     )
                     for item in db_tasks
                 ]
-                self._next_id = max((task.task_id for task in self.tasks), default=0) + 1
+                self._next_id = max(
+                    (task.task_id for task in self.tasks), default=0) + 1
                 return True
 
         # Fallback to user-specific JSON backup

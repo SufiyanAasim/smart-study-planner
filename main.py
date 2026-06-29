@@ -4,15 +4,15 @@ Main launcher and Terminal-based user interface for the Smart Study Planner.
 Author: Mohammad Sufiyan Aasim (SufiyanAasim)
 """
 
+import utils
+from database import DatabaseManager
+from logic import TaskManager
+from models import PRIORITY_LEVELS, DATE_FORMAT
+from datetime import date
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from datetime import date
-from models import PRIORITY_LEVELS, DATE_FORMAT
-from logic import TaskManager
-from database import DatabaseManager
-import utils
 
 DATA_FILE = "data/tasks.json"
 DB_FILE = "data/planner.db"
@@ -60,13 +60,15 @@ def print_tasks(tasks):
         days_text = str(task.days_left())
         if task.is_overdue():
             days_text += " OVERDUE"
-        
+
         # Clean title & category to prevent tab/newline breakage
         clean_title = task.title.replace('\n', ' ').replace('\t', ' ')
-        title = (clean_title[:22] + "...") if len(clean_title) > 25 else clean_title
-        
+        title = (clean_title[:22] +
+                 "...") if len(clean_title) > 25 else clean_title
+
         clean_cat = task.category.replace('\n', ' ').replace('\t', ' ')
-        category = (clean_cat[:9] + "...") if len(clean_cat) > 12 else clean_cat
+        category = (clean_cat[:9] +
+                    "...") if len(clean_cat) > 12 else clean_cat
 
         print(f"  {task.task_id:<4}{title:<25}{category:<12}{task.priority:<9}"
               f"{task.deadline.strftime(DATE_FORMAT):<12}{task.status:<10}{days_text:<12}")
@@ -76,7 +78,8 @@ def handle_add(manager):
     """CLI flow for adding a new task after validating inputs."""
     print("\n➕ -- Add a New Task --")
     print("  0. Cancel and return to menu")
-    title = utils.get_non_empty_string("  Title (0 to cancel): ", allow_exit=True)
+    title = utils.get_non_empty_string(
+        "  Title (0 to cancel): ", allow_exit=True)
     if title is None:
         print("  (Action cancelled.)")
         return
@@ -85,7 +88,8 @@ def handle_add(manager):
     if priority is None:
         print("  (Action cancelled.)")
         return
-    category = utils.get_non_empty_string("  Category (e.g. Study, Exam, Project) [Study]: ", allow_exit=True)
+    category = utils.get_non_empty_string(
+        "  Category (e.g. Study, Exam, Project) [Study]: ", allow_exit=True)
     if category is None:
         print("  (Action cancelled.)")
         return
@@ -114,7 +118,8 @@ def handle_update(manager):
         print("  (There are no tasks to update.)")
         return
     print_tasks(manager.get_all())
-    task_id = utils.get_valid_int("  Enter the ID of the task to update (0 to cancel): ", allow_exit=True)
+    task_id = utils.get_valid_int(
+        "  Enter the ID of the task to update (0 to cancel): ", allow_exit=True)
     if task_id is None:
         print("  (Action cancelled.)")
         return
@@ -141,7 +146,8 @@ def handle_update(manager):
     if utils.confirm("  Change deadline?"):
         new_deadline = utils.get_valid_date("  New deadline")
 
-    manager.update_task(task_id, new_title, new_priority, new_deadline, new_desc, new_cat)
+    manager.update_task(task_id, new_title, new_priority,
+                        new_deadline, new_desc, new_cat)
     manager.save()
     print(f"  ~ Task #{task_id} updated and saved.")
 
@@ -155,7 +161,8 @@ def handle_complete(manager):
         print("  (There are no pending tasks.)")
         return
     print_tasks(pending)
-    task_id = utils.get_valid_int("  Enter the ID of the task to complete (0 to cancel): ", allow_exit=True)
+    task_id = utils.get_valid_int(
+        "  Enter the ID of the task to complete (0 to cancel): ", allow_exit=True)
     if task_id is None:
         print("  (Action cancelled.)")
         return
@@ -174,7 +181,8 @@ def handle_delete(manager):
         print("  (There are no tasks to delete.)")
         return
     print_tasks(manager.get_all())
-    task_id = utils.get_valid_int("  Enter the ID of the task to delete (0 to cancel): ", allow_exit=True)
+    task_id = utils.get_valid_int(
+        "  Enter the ID of the task to delete (0 to cancel): ", allow_exit=True)
     if task_id is None:
         print("  (Action cancelled.)")
         return
@@ -204,7 +212,7 @@ def handle_search_filter_sort(manager):
         print("  8. Sort by title")
         print("  9. Sort by category")
         print("  0. Return to main menu")
-        
+
         choice = utils.get_menu_choice("  Choose an option: ",
                                        ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"))
         if choice == "0":
@@ -244,17 +252,19 @@ def handle_summary(manager):
           f"{utils.text_bar(summary['completed'], summary['total'])}")
     print(f"  Pending     : {summary['pending']}")
     print(f"  Overdue     : {summary['overdue']}")
-    
+
     # Check for Today's tasks (deadline is today)
     today = date.today()
-    todays_tasks = [t for t in manager.get_all() if t.deadline == today and not t.is_completed()]
+    todays_tasks = [t for t in manager.get_all() if t.deadline ==
+                    today and not t.is_completed()]
     print(f"  Today's Tasks pending: {len(todays_tasks)}")
-    
+
     print("\n  By priority :")
     for level in PRIORITY_LEVELS:
         count = summary["by_priority"][level]
-        print(f"    {level:<8}: {count}  {utils.text_bar(count, summary['total'])}")
-        
+        print(
+            f"    {level:<8}: {count}  {utils.text_bar(count, summary['total'])}")
+
     # Category Distribution
     categories = {}
     for task in manager.get_all():
@@ -262,13 +272,16 @@ def handle_summary(manager):
         categories[cat] = categories.get(cat, 0) + 1
     print("\n  By category :")
     for cat, count in categories.items():
-        print(f"    {cat:<12}: {count}  {utils.text_bar(count, summary['total'])}")
+        print(
+            f"    {cat:<12}: {count}  {utils.text_bar(count, summary['total'])}")
 
     # Recommendations
     if summary["overdue"] > 0:
-        print(f"\n  💡 Recommendation: You have {summary['overdue']} overdue task(s). Consider tackling those first.")
+        print(
+            f"\n  💡 Recommendation: You have {summary['overdue']} overdue task(s). Consider tackling those first.")
     elif len(todays_tasks) > 0:
-        print(f"\n  💡 Recommendation: You have {len(todays_tasks)} study deadline(s) ending today. Review them now!")
+        print(
+            f"\n  💡 Recommendation: You have {len(todays_tasks)} study deadline(s) ending today. Review them now!")
     elif summary["pending"] == 0:
         print("\n  🏆 Outstanding: All study milestones have been met!")
     else:
@@ -278,7 +291,7 @@ def handle_summary(manager):
 def handle_register(db):
     """CLI signup flow with rigorous validations."""
     print("\n📝 -- Register a New Account --")
-    
+
     # Full Name Validation
     while True:
         full_name = input("  Full Name: ").strip()
@@ -299,7 +312,8 @@ def handle_register(db):
 
     # Optional Username & Uniqueness
     while True:
-        username = input("  Username (optional, press Enter to skip): ").strip()
+        username = input(
+            "  Username (optional, press Enter to skip): ").strip()
         if not username:
             username = None
             break
@@ -333,7 +347,8 @@ def handle_register(db):
     security_answer = utils.get_non_empty_string("  Security Answer: ")
 
     try:
-        user = db.register_user(full_name, email, username, password, security_question, security_answer)
+        user = db.register_user(
+            full_name, email, username, password, security_question, security_answer)
         print(f"\n  ✅ Registration successful! Welcome, {user['full_name']}.")
         return user
     except ValueError as exc:
@@ -346,7 +361,7 @@ def handle_login(db):
     print("\n🔐 -- Login to Smart Study Planner --")
     credential = utils.get_non_empty_string("  Username or Email: ")
     password = utils.get_non_empty_string("  Password: ")
-    
+
     user = db.authenticate_user(credential, password)
     if user is None:
         print("  ! Invalid credentials. Authentication failed.")
@@ -359,7 +374,7 @@ def handle_forgot_password(db):
     """CLI flow to reset password using security question verification."""
     print("\n🔑 -- Forgot Password / Password Reset --")
     email = utils.get_non_empty_string("  Enter registered Email: ")
-    
+
     # Query details first
     security_question = db.get_security_question(email)
     if not security_question:
@@ -382,7 +397,8 @@ def handle_forgot_password(db):
         break
 
     try:
-        db.reset_password(email, security_question, security_answer, new_password)
+        db.reset_password(email, security_question,
+                          security_answer, new_password)
         print("  ✅ Password reset successful! You can now log in.")
     except ValueError as exc:
         print(f"  ! Reset failed: {exc}")
@@ -392,14 +408,15 @@ def run_cli_mode():
     """Starts the CLI session manager loop."""
     print("\n💻 Launching Command Line Interface (CLI) Mode...")
     db = DatabaseManager(DB_FILE)
-    
+
     current_user = None
-    
+
     # Outer Authentication loop
     while True:
         if current_user is None:
             print(AUTH_MENU)
-            choice = utils.get_menu_choice("  Select option: ", ("0", "1", "2", "3"))
+            choice = utils.get_menu_choice(
+                "  Select option: ", ("0", "1", "2", "3"))
             if choice == "0":
                 print("  Returning to launcher menu...")
                 break
@@ -411,14 +428,15 @@ def run_cli_mode():
                 handle_forgot_password(db)
         else:
             # Planner session is active
-            manager = TaskManager(DATA_FILE, db_file=DB_FILE, user_id=current_user["id"])
+            manager = TaskManager(DATA_FILE, db_file=DB_FILE,
+                                  user_id=current_user["id"])
             manager.load()
             if manager.get_all():
                 print(f"  Loaded {len(manager.get_all())} saved task(s).")
-            
+
             while True:
                 print(PLANNER_MENU)
-                planner_choice = utils.get_menu_choice("  Select option: ", 
+                planner_choice = utils.get_menu_choice("  Select option: ",
                                                        ("0", "1", "2", "3", "4", "5", "6", "7", "8"))
                 if planner_choice == "1":
                     handle_add(manager)
@@ -439,7 +457,8 @@ def run_cli_mode():
                     print("  Tasks synchronized to database.")
                 elif planner_choice == "0":
                     manager.save()
-                    print(f"  Logged out. Tasks saved for user: {current_user['full_name']}")
+                    print(
+                        f"  Logged out. Tasks saved for user: {current_user['full_name']}")
                     current_user = None
                     break
 
@@ -464,8 +483,9 @@ def show_launcher_menu():
         print("  2. Launch GUI Mode (Desktop Application)")
         print("  3. Exit")
         print("=========================================================")
-        choice = utils.get_menu_choice("  Select launch mode: ", ("1", "2", "3"))
-        
+        choice = utils.get_menu_choice(
+            "  Select launch mode: ", ("1", "2", "3"))
+
         if choice == "1":
             run_cli_mode()
         elif choice == "2":
@@ -502,7 +522,8 @@ def main():
             else:
                 try:
                     from tkinter import messagebox
-                    messagebox.showerror("Error", f"Failed to launch Smart Study Planner GUI:\n{exc}")
+                    messagebox.showerror(
+                        "Error", f"Failed to launch Smart Study Planner GUI:\n{exc}")
                 except Exception:
                     pass
                 sys.exit(1)

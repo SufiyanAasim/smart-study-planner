@@ -6,9 +6,8 @@ from datetime import date
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from models import Task
-from logic import TaskManager
-from database import DatabaseManager
+from database import DatabaseManager  # noqa: E402
+from logic import TaskManager  # noqa: E402
 
 
 class SmartStudyPlannerTests(unittest.TestCase):
@@ -17,7 +16,7 @@ class SmartStudyPlannerTests(unittest.TestCase):
         self.db_path = os.path.join(self.temp_dir, "planner.db")
         self.data_file_base = os.path.join(self.temp_dir, "tasks.json")
         self.db = DatabaseManager(self.db_path)
-        
+
         # Register two test users
         self.user_a = self.db.register_user(
             full_name="Alice Smith",
@@ -77,10 +76,12 @@ class SmartStudyPlannerTests(unittest.TestCase):
         # Forgot password recovery
         with self.assertRaises(ValueError):
             # Wrong answer
-            self.db.reset_password("alice@example.com", "What is your favorite pet's name?", "WrongAnswer", "NewPass123!")
+            self.db.reset_password(
+                "alice@example.com", "What is your favorite pet's name?", "WrongAnswer", "NewPass123!")
 
         # Correct answer
-        success = self.db.reset_password("alice@example.com", "What is your favorite pet's name?", "Goldie", "NewPass123!")
+        success = self.db.reset_password(
+            "alice@example.com", "What is your favorite pet's name?", "Goldie", "NewPass123!")
         self.assertTrue(success)
 
         # Authenticate with new password
@@ -89,39 +90,48 @@ class SmartStudyPlannerTests(unittest.TestCase):
 
     def test_user_isolation(self):
         # Alice manager
-        mgr_a = TaskManager(self.data_file_base, db_file=self.db_path, user_id=self.user_a["id"])
+        mgr_a = TaskManager(self.data_file_base,
+                            db_file=self.db_path, user_id=self.user_a["id"])
         mgr_a.load()
-        mgr_a.add_task("Alice Physics Lab", "High", date(2026, 7, 1), "Lab work details", "Lab")
+        mgr_a.add_task("Alice Physics Lab", "High", date(
+            2026, 7, 1), "Lab work details", "Lab")
         mgr_a.save()
 
         # Bob manager (should start with empty tasks)
-        mgr_b = TaskManager(self.data_file_base, db_file=self.db_path, user_id=self.user_b["id"])
+        mgr_b = TaskManager(self.data_file_base,
+                            db_file=self.db_path, user_id=self.user_b["id"])
         mgr_b.load()
         self.assertEqual(len(mgr_b.get_all()), 0)
 
         # Bob adds their own task
-        mgr_b.add_task("Bob Math Assignment", "Low", date(2026, 7, 2), "Exercise sheet 3", "Assignment")
+        mgr_b.add_task("Bob Math Assignment", "Low", date(
+            2026, 7, 2), "Exercise sheet 3", "Assignment")
         mgr_b.save()
 
         # Reload and check isolation
-        reloaded_a = TaskManager(self.data_file_base, db_file=self.db_path, user_id=self.user_a["id"])
+        reloaded_a = TaskManager(
+            self.data_file_base, db_file=self.db_path, user_id=self.user_a["id"])
         reloaded_a.load()
         self.assertEqual(len(reloaded_a.get_all()), 1)
         self.assertEqual(reloaded_a.get_all()[0].title, "Alice Physics Lab")
-        self.assertEqual(reloaded_a.get_all()[0].description, "Lab work details")
+        self.assertEqual(reloaded_a.get_all()[
+                         0].description, "Lab work details")
         self.assertEqual(reloaded_a.get_all()[0].category, "Lab")
 
-        reloaded_b = TaskManager(self.data_file_base, db_file=self.db_path, user_id=self.user_b["id"])
+        reloaded_b = TaskManager(
+            self.data_file_base, db_file=self.db_path, user_id=self.user_b["id"])
         reloaded_b.load()
         self.assertEqual(len(reloaded_b.get_all()), 1)
         self.assertEqual(reloaded_b.get_all()[0].title, "Bob Math Assignment")
 
     def test_task_crud(self):
-        mgr = TaskManager(self.data_file_base, db_file=self.db_path, user_id=self.user_a["id"])
+        mgr = TaskManager(self.data_file_base,
+                          db_file=self.db_path, user_id=self.user_a["id"])
         mgr.load()
 
         # Create
-        task = mgr.add_task("Write Essay", "High", date(2026, 7, 5), "English Lit essay", "Study")
+        task = mgr.add_task("Write Essay", "High", date(
+            2026, 7, 5), "English Lit essay", "Study")
         self.assertEqual(task.title, "Write Essay")
         self.assertEqual(task.description, "English Lit essay")
         self.assertEqual(task.priority, "High")
@@ -132,7 +142,8 @@ class SmartStudyPlannerTests(unittest.TestCase):
         self.assertIsNotNone(mgr.find_by_id(task.task_id))
 
         # Update
-        mgr.update_task(task.task_id, title="Edit Essay", description="Updated description", category="Exam")
+        mgr.update_task(task.task_id, title="Edit Essay",
+                        description="Updated description", category="Exam")
         self.assertEqual(task.title, "Edit Essay")
         self.assertEqual(task.description, "Updated description")
         self.assertEqual(task.category, "Exam")

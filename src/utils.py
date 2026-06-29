@@ -22,7 +22,7 @@ def hash_password(password, salt=None):
     # Convert password and salt to bytes
     password_bytes = password.encode("utf-8")
     salt_bytes = salt.encode("utf-8")
-    
+
     # Hash password using PBKDF2 HMAC SHA-256
     hash_bytes = hashlib.pbkdf2_hmac(
         "sha256", password_bytes, salt_bytes, 100000
@@ -225,7 +225,8 @@ def play_soundscape(name, volume=70):
             out.setparams(params)
             out.writeframes(samples.tobytes())
         _soundscape_tmp = tmp_path
-        winsound.PlaySound(tmp_path, winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_LOOP)
+        winsound.PlaySound(tmp_path, winsound.SND_FILENAME |
+                           winsound.SND_ASYNC | winsound.SND_LOOP)
         _SOUNDSCAPE_ACTIVE = True
         return True
     except Exception:
@@ -263,9 +264,11 @@ def _play(kind):
         import winsound
         path = get_resource_path(_SOUND_FILES[kind])
         if os.path.exists(path):
-            winsound.PlaySound(path, winsound.SND_FILENAME | winsound.SND_ASYNC)
+            winsound.PlaySound(path, winsound.SND_FILENAME |
+                               winsound.SND_ASYNC)
         else:
-            winsound.PlaySound(_SYSTEM_FALLBACK[kind], winsound.SND_ALIAS | winsound.SND_ASYNC)
+            winsound.PlaySound(
+                _SYSTEM_FALLBACK[kind], winsound.SND_ALIAS | winsound.SND_ASYNC)
     except Exception:
         pass
 

@@ -104,13 +104,13 @@ class ModernMessageBox(tk.Toplevel):
             elif hasattr(parent, "theme") and isinstance(parent.theme, dict):
                 if parent.theme.get("bg_main") == "#f8fafc":
                     self.theme_name = "light"
-        
+
         self.theme = THEMES[self.theme_name]
 
         # Style window
         self.configure(bg=self.theme["bg_card"])
         self.resizable(False, False)
-        
+
         self.transient(parent)
         self.grab_set()
 
@@ -154,7 +154,8 @@ class ModernMessageBox(tk.Toplevel):
         if box_type == "info" and any(k in message.lower() for k in ["success", "copi", "export", "sav", "sync", "updat"]):
             emoji, color = icons["success"]
 
-        icon_lbl = tk.Label(main_frame, text=emoji, font=("Segoe UI", 26), bg=self.theme["bg_card"], fg=color)
+        icon_lbl = tk.Label(main_frame, text=emoji, font=(
+            "Segoe UI", 26), bg=self.theme["bg_card"], fg=color)
         icon_lbl.grid(row=0, column=0, sticky="nw", padx=(0, 15), pady=10)
 
         # Message Text
@@ -164,7 +165,8 @@ class ModernMessageBox(tk.Toplevel):
 
         # Action Buttons frame
         btn_frame = tk.Frame(main_frame, bg=self.theme["bg_card"])
-        btn_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        btn_frame.grid(row=1, column=0, columnspan=2,
+                       sticky="ew", pady=(10, 0))
 
         if box_type == "question":
             # Yes/No buttons
@@ -185,10 +187,13 @@ class ModernMessageBox(tk.Toplevel):
             ok_btn.pack(side="right")
 
         # Focus button
-        self.bind("<Escape>", lambda e: self._on_no() if box_type == "question" else self._on_ok())
-        self.bind("<Return>", lambda e: self._on_yes() if box_type == "question" else self._on_ok())
+        self.bind("<Escape>", lambda e: self._on_no()
+                  if box_type == "question" else self._on_ok())
+        self.bind("<Return>", lambda e: self._on_yes()
+                  if box_type == "question" else self._on_ok())
 
-        self.protocol("WM_DELETE_WINDOW", self._on_no if box_type == "question" else self._on_ok)
+        self.protocol("WM_DELETE_WINDOW", self._on_no if box_type ==
+                      "question" else self._on_ok)
         self.wait_window()
 
     def _on_yes(self):
@@ -351,8 +356,10 @@ def create_flat_button(parent, text, bg_color, fg_color, command, hover_bg=None,
 
 def bind_focus_highlight(widget, theme):
     """Binds focus events to dynamically change border colors for premium focus states."""
-    widget.bind("<FocusIn>", lambda e: widget.config(highlightbackground=theme["primary"]))
-    widget.bind("<FocusOut>", lambda e: widget.config(highlightbackground=theme["border"]))
+    widget.bind("<FocusIn>", lambda e: widget.config(
+        highlightbackground=theme["primary"]))
+    widget.bind("<FocusOut>", lambda e: widget.config(
+        highlightbackground=theme["border"]))
 
 
 def bind_lowercase(entry):
@@ -371,7 +378,8 @@ def bind_lowercase(entry):
 
 def _blend_hex(c1, c2, t):
     """Linear blend of two #rrggbb colors. t=0 -> c1, t=1 -> c2."""
-    c1 = c1.lstrip("#"); c2 = c2.lstrip("#")
+    c1 = c1.lstrip("#")
+    c2 = c2.lstrip("#")
     r1, g1, b1 = int(c1[0:2], 16), int(c1[2:4], 16), int(c1[4:6], 16)
     r2, g2, b2 = int(c2[0:2], 16), int(c2[2:4], 16), int(c2[4:6], 16)
     r = round(r1 + (r2 - r1) * t)
@@ -387,7 +395,8 @@ class ParticleCanvas(tk.Canvas):
     not mapped, and it self-terminates once the widget is destroyed."""
 
     def __init__(self, parent, theme, base_image=None, count=26, **kw):
-        super().__init__(parent, highlightthickness=0, bd=0, bg=theme["bg_main"], **kw)
+        super().__init__(parent, highlightthickness=0,
+                         bd=0, bg=theme["bg_main"], **kw)
         self.theme = theme
         self.base_image_raw = base_image
         self._photo = None
@@ -434,7 +443,8 @@ class ParticleCanvas(tk.Canvas):
         """Draws the static backdrop (base image or vertical gradient) once per resize."""
         self.delete("bg")
         if self.base_image_raw is not None and self._cw > 2 and self._ch > 2:
-            img = self.base_image_raw.resize((self._cw, self._ch), Image.Resampling.LANCZOS)
+            img = self.base_image_raw.resize(
+                (self._cw, self._ch), Image.Resampling.LANCZOS)
             self._photo = ImageTk.PhotoImage(img)
             self.create_image(0, 0, anchor="nw", image=self._photo, tags="bg")
         else:
@@ -442,7 +452,8 @@ class ParticleCanvas(tk.Canvas):
             for y in range(0, self._ch, step):
                 t = y / max(1, self._ch)
                 color = _blend_hex(self.grad_top, self.grad_bottom, t)
-                self.create_rectangle(0, y, self._cw, y + step, fill=color, outline="", tags="bg")
+                self.create_rectangle(
+                    0, y, self._cw, y + step, fill=color, outline="", tags="bg")
         self.tag_lower("bg")
 
     def _tick(self):
@@ -502,7 +513,7 @@ class TaskDialog(simpledialog.Dialog):
 
         label_font = ("Segoe UI", 10, "bold")
         entry_font = ("Segoe UI", 10)
-        
+
         # Grid Configuration
         master.columnconfigure(1, weight=1)
 
@@ -519,16 +530,18 @@ class TaskDialog(simpledialog.Dialog):
         # Category
         tk.Label(master, text="Category:", font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).grid(
             row=1, column=0, sticky="w", pady=6, padx=8)
-        
+
         categories = ["Study", "Assignment", "Exam", "Project", "Lab", "Other"]
-        self.category_box = ttk.Combobox(master, values=categories, state="normal", font=entry_font, width=33)
+        self.category_box = ttk.Combobox(
+            master, values=categories, state="normal", font=entry_font, width=33)
         self.category_box.grid(row=1, column=1, pady=6, padx=8, sticky="ew")
         self.category_box.set(self.initial.get("category", "Study"))
 
         # Priority
         tk.Label(master, text="Priority:", font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).grid(
             row=2, column=0, sticky="w", pady=6, padx=8)
-        self.priority_box = ttk.Combobox(master, values=list(PRIORITY_LEVELS), state="readonly", font=entry_font, width=33)
+        self.priority_box = ttk.Combobox(master, values=list(
+            PRIORITY_LEVELS), state="readonly", font=entry_font, width=33)
         self.priority_box.grid(row=2, column=1, pady=6, padx=8, sticky="ew")
         self.priority_box.set(self.initial.get("priority", PRIORITY_LEVELS[0]))
 
@@ -539,7 +552,8 @@ class TaskDialog(simpledialog.Dialog):
                                        insertbackground=self.theme["text_primary"], highlightbackground=self.theme["border"],
                                        highlightthickness=1, bd=0, width=35)
         self.deadline_entry.grid(row=3, column=1, pady=6, padx=8, sticky="ew")
-        self.deadline_entry.insert(0, self.initial.get("deadline", date.today().strftime(DATE_FORMAT)))
+        self.deadline_entry.insert(0, self.initial.get(
+            "deadline", date.today().strftime(DATE_FORMAT)))
         bind_focus_highlight(self.deadline_entry, self.theme)
 
         # Description
@@ -548,8 +562,10 @@ class TaskDialog(simpledialog.Dialog):
         self.description_text = tk.Text(master, font=entry_font, bg=self.theme["bg_main"], fg=self.theme["text_primary"],
                                         insertbackground=self.theme["text_primary"], highlightbackground=self.theme["border"],
                                         highlightthickness=1, bd=0, height=4, width=35, wrap="word")
-        self.description_text.grid(row=4, column=1, pady=6, padx=8, sticky="ew")
-        self.description_text.insert("1.0", self.initial.get("description", "") or "")
+        self.description_text.grid(
+            row=4, column=1, pady=6, padx=8, sticky="ew")
+        self.description_text.insert(
+            "1.0", self.initial.get("description", "") or "")
         bind_focus_highlight(self.description_text, self.theme)
 
         return self.title_entry
@@ -577,23 +593,24 @@ class TaskDialog(simpledialog.Dialog):
         if not title:
             messagebox.showerror("Invalid Input", "Title cannot be empty.")
             return False
-            
+
         category = self.category_box.get().strip()
         if not category:
             category = "Study"
-            
+
         priority = self.priority_box.get()
         if priority not in PRIORITY_LEVELS:
-            messagebox.showerror("Invalid Input", "Please choose a valid priority level.")
+            messagebox.showerror(
+                "Invalid Input", "Please choose a valid priority level.")
             return False
-            
+
         deadline = parse_date(self.deadline_entry.get())
         if deadline is None:
             messagebox.showerror(
                 "Invalid Input",
                 "Deadline must be a real calendar date in the format YYYY-MM-DD.")
             return False
-            
+
         desc = self.description_text.get("1.0", "end-1c").strip()
         self._parsed = (title, priority, deadline, desc, category)
         return True
@@ -614,16 +631,18 @@ class AuthFrame(tk.Frame):
         self._initial_state = initial_state
 
         self.mode = "login"  # login, register, forgot
-        
+
         # Animated background: the same theme-aware gradient particle-constellation
         # used on the Focus Timer screen (no static image), so it adapts cleanly to
         # both light and dark themes.
-        self.bg_canvas = ParticleCanvas(self, self.theme, base_image=None, count=30)
+        self.bg_canvas = ParticleCanvas(
+            self, self.theme, base_image=None, count=30)
         self.bg_canvas.place(x=0, y=0, relwidth=1.0, relheight=1.0)
 
         # Load custom logo image using PIL
         self.logo_raw = Image.open(get_resource_path("assets/logo.png"))
-        self.logo_resized = self.logo_raw.resize((65, 65), Image.Resampling.LANCZOS)
+        self.logo_resized = self.logo_raw.resize(
+            (65, 65), Image.Resampling.LANCZOS)
         self.logo_tk = ImageTk.PhotoImage(self.logo_resized)
 
         self._build_ui()
@@ -632,7 +651,8 @@ class AuthFrame(tk.Frame):
         # Container Card Frame
         self.card = tk.Frame(self, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
                              highlightthickness=1, bd=0)
-        self.card.place(relx=0.5, rely=0.5, anchor="center", width=450, height=430)
+        self.card.place(relx=0.5, rely=0.5, anchor="center",
+                        width=450, height=430)
         self._restore_initial_state()
 
     def capture_state(self):
@@ -735,10 +755,14 @@ class AuthFrame(tk.Frame):
             selectforeground=[("readonly", self.theme["text_primary"])]
         )
         # Style the popdown list to match the active theme.
-        self.parent.option_add("*TCombobox*Listbox.background", self.theme["bg_card"])
-        self.parent.option_add("*TCombobox*Listbox.foreground", self.theme["text_primary"])
-        self.parent.option_add("*TCombobox*Listbox.selectBackground", self.theme["primary"])
-        self.parent.option_add("*TCombobox*Listbox.selectForeground", "#ffffff")
+        self.parent.option_add(
+            "*TCombobox*Listbox.background", self.theme["bg_card"])
+        self.parent.option_add(
+            "*TCombobox*Listbox.foreground", self.theme["text_primary"])
+        self.parent.option_add(
+            "*TCombobox*Listbox.selectBackground", self.theme["primary"])
+        self.parent.option_add(
+            "*TCombobox*Listbox.selectForeground", "#ffffff")
         self.parent.option_add("*TCombobox*Listbox.font", "{Segoe UI} 9")
 
         lang_combo = ttk.Combobox(
@@ -753,7 +777,8 @@ class AuthFrame(tk.Frame):
         lang_combo.pack(side="left", padx=(0, 8), ipady=2)
         lang_combo.bind(
             "<<ComboboxSelected>>",
-            lambda e: (lang_combo.selection_clear(), self._change_language(name_to_code[lang_combo.get()]))
+            lambda e: (lang_combo.selection_clear(),
+                       self._change_language(name_to_code[lang_combo.get()]))
         )
 
         # --- Enhanced light/dark theme toggle (pill button with icon) ---
@@ -782,8 +807,10 @@ class AuthFrame(tk.Frame):
             command=self._toggle_theme
         )
         theme_btn.pack(side="left")
-        theme_btn.bind("<Enter>", lambda e: theme_btn.config(bg=self.theme["border"]))
-        theme_btn.bind("<Leave>", lambda e: theme_btn.config(bg=self.theme["bg_main"]))
+        theme_btn.bind("<Enter>", lambda e: theme_btn.config(
+            bg=self.theme["border"]))
+        theme_btn.bind("<Leave>", lambda e: theme_btn.config(
+            bg=self.theme["bg_main"]))
 
     def _toggle_theme(self):
         play_click_sound()
@@ -848,13 +875,15 @@ class AuthFrame(tk.Frame):
         except Exception:
             self._login_accounts = []
         card_h = 600 if self._login_accounts else 540
-        self.card.place(relx=0.5, rely=0.5, anchor="center", width=450, height=card_h)
+        self.card.place(relx=0.5, rely=0.5, anchor="center",
+                        width=450, height=card_h)
 
         # Aligned language dropdown + theme toggle (top-right)
         self.add_auth_controls()
 
         # Display Logo
-        logo_label = tk.Label(self.card, image=self.logo_tk, bg=self.theme["bg_card"])
+        logo_label = tk.Label(self.card, image=self.logo_tk,
+                              bg=self.theme["bg_card"])
         logo_label.pack(pady=(45, 5))
 
         lang = self.parent.current_lang
@@ -882,8 +911,10 @@ class AuthFrame(tk.Frame):
                                  bd=0, cursor="hand2", padx=8, pady=4, activebackground=self.theme["border"],
                                  command=(lambda i=ident: self._quick_pick_account(i)))
                 chip.pack(side="left", padx=(0, 6))
-                chip.bind("<Enter>", lambda e, b=chip: b.config(bg=self.theme["border"]))
-                chip.bind("<Leave>", lambda e, b=chip: b.config(bg=self.theme["bg_main"]))
+                chip.bind("<Enter>", lambda e, b=chip: b.config(
+                    bg=self.theme["border"]))
+                chip.bind("<Leave>", lambda e, b=chip: b.config(
+                    bg=self.theme["bg_main"]))
 
         # Username / Email Field
         form_frame = tk.Frame(self.card, bg=self.theme["bg_card"])
@@ -900,26 +931,28 @@ class AuthFrame(tk.Frame):
         # Password Field
         tk.Label(form_frame, text=TRANSLATIONS[lang]["password"], font=("Segoe UI", 10, "bold"),
                  bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(5, 4))
-        
+
         pwd_container = tk.Frame(form_frame, bg=self.theme["bg_card"])
         pwd_container.pack(fill="x", pady=(0, 5))
-        
+
         self.login_pwd_entry = tk.Entry(pwd_container, font=("Segoe UI", 11), bg=self.theme["bg_main"], show="*",
                                         fg=self.theme["text_primary"], insertbackground=self.theme["text_primary"],
                                         highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
         self.login_pwd_entry.pack(side="left", fill="x", expand=True, ipady=4)
         bind_focus_highlight(self.login_pwd_entry, self.theme)
-        
+
         eye_btn = tk.Button(pwd_container, text="👁", font=("Segoe UI", 10), bg=self.theme["border"], fg=self.theme["text_primary"],
                             relief="flat", activebackground=self.theme["bg_main"], bd=0, cursor="hand2", width=3)
         eye_btn.pack(side="right", fill="y", padx=(2, 0))
-        eye_btn.config(command=lambda: self.toggle_password_visibility(self.login_pwd_entry, eye_btn))
+        eye_btn.config(command=lambda: self.toggle_password_visibility(
+            self.login_pwd_entry, eye_btn))
 
         # Forgot Password Link
         forgot_lbl = tk.Label(form_frame, text=TRANSLATIONS[lang]["forgot_pwd_link"], font=("Segoe UI", 9, "underline"),
                               bg=self.theme["bg_card"], fg=self.theme["primary"], cursor="hand2")
         forgot_lbl.pack(anchor="e", pady=(2, 10))
-        forgot_lbl.bind("<Button-1>", lambda e: (play_click_sound(), self.show_forgot_view()))
+        forgot_lbl.bind(
+            "<Button-1>", lambda e: (play_click_sound(), self.show_forgot_view()))
 
         # Action Buttons
         login_btn = create_flat_button(form_frame, TRANSLATIONS[lang]["login_btn"], self.theme["primary"], "#ffffff",
@@ -928,14 +961,15 @@ class AuthFrame(tk.Frame):
 
         reg_row = tk.Frame(form_frame, bg=self.theme["bg_card"])
         reg_row.pack(pady=(10, 5))
-        
+
         tk.Label(reg_row, text=TRANSLATIONS[lang]["no_account"], font=("Segoe UI", 9),
                  bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(side="left")
-        
+
         reg_link = tk.Label(reg_row, text=TRANSLATIONS[lang]["register_link"], font=("Segoe UI", 9, "bold", "underline"),
                             bg=self.theme["bg_card"], fg=self.theme["success"], cursor="hand2")
         reg_link.pack(side="left", padx=5)
-        reg_link.bind("<Button-1>", lambda e: (play_click_sound(), self.show_register_view()))
+        reg_link.bind("<Button-1>", lambda e: (play_click_sound(),
+                      self.show_register_view()))
 
         exit_app_btn = create_flat_button(form_frame, TRANSLATIONS[lang]["exit_btn"], self.theme["danger"], "#ffffff",
                                           self.parent.confirm_exit, hover_bg=self.theme["danger_hover"])
@@ -947,7 +981,8 @@ class AuthFrame(tk.Frame):
     def show_register_view(self):
         self.clear_card()
         self.mode = "register"
-        self.card.place(relx=0.5, rely=0.5, anchor="center", width=520, height=740)
+        self.card.place(relx=0.5, rely=0.5, anchor="center",
+                        width=520, height=740)
 
         # Aligned language dropdown + theme toggle (top-right). No back arrow here —
         # the "Back to Login" link at the bottom already covers that navigation.
@@ -977,7 +1012,8 @@ class AuthFrame(tk.Frame):
         # Full Name (Column 0)
         fullname_container = tk.Frame(row1_frame, bg=self.theme["bg_card"])
         fullname_container.grid(row=0, column=0, sticky="ew", padx=(0, 8))
-        tk.Label(fullname_container, text=TRANSLATIONS[lang]["full_name"], font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
+        tk.Label(fullname_container, text=TRANSLATIONS[lang]["full_name"], font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
         self.reg_fullname = tk.Entry(fullname_container, font=entry_font, bg=self.theme["bg_main"], fg=self.theme["text_primary"],
                                      highlightbackground=self.theme["border"], highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"])
         self.reg_fullname.pack(fill="x", ipady=3)
@@ -986,7 +1022,8 @@ class AuthFrame(tk.Frame):
         # Username (Column 1)
         username_container = tk.Frame(row1_frame, bg=self.theme["bg_card"])
         username_container.grid(row=0, column=1, sticky="ew", padx=(8, 0))
-        tk.Label(username_container, text=TRANSLATIONS[lang]["username_opt"], font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
+        tk.Label(username_container, text=TRANSLATIONS[lang]["username_opt"], font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
         self.reg_username = tk.Entry(username_container, font=entry_font, bg=self.theme["bg_main"], fg=self.theme["text_primary"],
                                      highlightbackground=self.theme["border"], highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"])
         self.reg_username.pack(fill="x", ipady=3)
@@ -994,7 +1031,8 @@ class AuthFrame(tk.Frame):
         bind_lowercase(self.reg_username)
 
         # Email
-        tk.Label(form_container, text=TRANSLATIONS[lang]["email"], font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
+        tk.Label(form_container, text=TRANSLATIONS[lang]["email"], font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
         self.reg_email = tk.Entry(form_container, font=entry_font, bg=self.theme["bg_main"], fg=self.theme["text_primary"],
                                   highlightbackground=self.theme["border"], highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"])
         self.reg_email.pack(fill="x", ipady=3, pady=(0, 6))
@@ -1009,8 +1047,9 @@ class AuthFrame(tk.Frame):
         # Password (Column 0)
         pwd_container = tk.Frame(row3_frame, bg=self.theme["bg_card"])
         pwd_container.grid(row=0, column=0, sticky="ew", padx=(0, 8))
-        tk.Label(pwd_container, text=TRANSLATIONS[lang]["password_req"], font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
-        
+        tk.Label(pwd_container, text=TRANSLATIONS[lang]["password_req"], font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
+
         pwd_input_frame = tk.Frame(pwd_container, bg=self.theme["bg_card"])
         pwd_input_frame.pack(fill="x")
         self.reg_password = tk.Entry(pwd_input_frame, font=entry_font, bg=self.theme["bg_main"], show="*", fg=self.theme["text_primary"],
@@ -1020,13 +1059,15 @@ class AuthFrame(tk.Frame):
         eye_btn = tk.Button(pwd_input_frame, text="👁", font=("Segoe UI", 9), bg=self.theme["border"], fg=self.theme["text_primary"],
                             relief="flat", bd=0, cursor="hand2", width=3)
         eye_btn.pack(side="right", fill="y", padx=(2, 0))
-        eye_btn.config(command=lambda: self.toggle_password_visibility(self.reg_password, eye_btn))
+        eye_btn.config(command=lambda: self.toggle_password_visibility(
+            self.reg_password, eye_btn))
 
         # Confirm Password (Column 1)
         pwd_container2 = tk.Frame(row3_frame, bg=self.theme["bg_card"])
         pwd_container2.grid(row=0, column=1, sticky="ew", padx=(8, 0))
-        tk.Label(pwd_container2, text=TRANSLATIONS[lang]["confirm_password_req"], font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
-        
+        tk.Label(pwd_container2, text=TRANSLATIONS[lang]["confirm_password_req"], font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
+
         pwd_input_frame2 = tk.Frame(pwd_container2, bg=self.theme["bg_card"])
         pwd_input_frame2.pack(fill="x")
         self.reg_confirm = tk.Entry(pwd_input_frame2, font=entry_font, bg=self.theme["bg_main"], show="*", fg=self.theme["text_primary"],
@@ -1036,17 +1077,20 @@ class AuthFrame(tk.Frame):
         eye_btn2 = tk.Button(pwd_input_frame2, text="👁", font=("Segoe UI", 9), bg=self.theme["border"], fg=self.theme["text_primary"],
                              relief="flat", bd=0, cursor="hand2", width=3)
         eye_btn2.pack(side="right", fill="y", padx=(2, 0))
-        eye_btn2.config(command=lambda: self.toggle_password_visibility(self.reg_confirm, eye_btn2))
+        eye_btn2.config(command=lambda: self.toggle_password_visibility(
+            self.reg_confirm, eye_btn2))
 
         # Security Question
-        tk.Label(form_container, text=TRANSLATIONS[lang]["security_question_req"], font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
+        tk.Label(form_container, text=TRANSLATIONS[lang]["security_question_req"], font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
         self.reg_question = ttk.Combobox(form_container, values=list(SECURITY_QUESTIONS), state="readonly",
                                          style="Auth.TCombobox", font=entry_font)
         self.reg_question.pack(fill="x", pady=(0, 6))
         self.reg_question.set(SECURITY_QUESTIONS[0])
 
         # Security Answer
-        tk.Label(form_container, text=TRANSLATIONS[lang]["security_answer_req"], font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
+        tk.Label(form_container, text=TRANSLATIONS[lang]["security_answer_req"], font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(0, 2))
         self.reg_answer = tk.Entry(form_container, font=entry_font, bg=self.theme["bg_main"], fg=self.theme["text_primary"],
                                    highlightbackground=self.theme["border"], highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"])
         self.reg_answer.pack(fill="x", ipady=3, pady=(0, 8))
@@ -1122,7 +1166,8 @@ class AuthFrame(tk.Frame):
         cancel_lbl = tk.Label(form_container, text=TRANSLATIONS[lang]["back_to_login"], font=("Segoe UI", 9, "bold", "underline"),
                               bg=self.theme["bg_card"], fg=self.theme["primary"], cursor="hand2")
         cancel_lbl.pack(pady=(0, 5))
-        cancel_lbl.bind("<Button-1>", lambda e: (play_click_sound(), self.show_login_view()))
+        cancel_lbl.bind(
+            "<Button-1>", lambda e: (play_click_sound(), self.show_login_view()))
 
         exit_app_btn = create_flat_button(form_container, TRANSLATIONS[lang]["exit_btn"], self.theme["danger"], "#ffffff",
                                           self.parent.confirm_exit, hover_bg=self.theme["danger_hover"])
@@ -1131,7 +1176,8 @@ class AuthFrame(tk.Frame):
     def show_forgot_view(self):
         self.clear_card()
         self.mode = "forgot"
-        self.card.place(relx=0.5, rely=0.5, anchor="center", width=450, height=360)
+        self.card.place(relx=0.5, rely=0.5, anchor="center",
+                        width=450, height=360)
 
         # Aligned language dropdown + theme toggle (top-right)
         self.add_auth_controls()
@@ -1150,9 +1196,12 @@ class AuthFrame(tk.Frame):
             activeforeground=self.theme["text_primary"]
         )
         back_btn.place(relx=0.0, rely=0.0, anchor="nw", x=40, y=15)
-        back_btn.config(command=lambda: (play_click_sound(), self.show_login_view()))
-        back_btn.bind("<Enter>", lambda e: back_btn.config(bg=self.theme["border"], fg=self.theme["text_primary"]))
-        back_btn.bind("<Leave>", lambda e: back_btn.config(bg=self.theme["bg_card"], fg=self.theme["text_muted"]))
+        back_btn.config(command=lambda: (
+            play_click_sound(), self.show_login_view()))
+        back_btn.bind("<Enter>", lambda e: back_btn.config(
+            bg=self.theme["border"], fg=self.theme["text_primary"]))
+        back_btn.bind("<Leave>", lambda e: back_btn.config(
+            bg=self.theme["bg_card"], fg=self.theme["text_muted"]))
 
         lang = self.parent.current_lang
 
@@ -1180,7 +1229,8 @@ class AuthFrame(tk.Frame):
         fetch_btn.pack(fill="x", ipady=2, pady=5)
 
         # Divider/Container for Step 2
-        self.forgot_step2_frame = tk.Frame(form_frame, bg=self.theme["bg_card"])
+        self.forgot_step2_frame = tk.Frame(
+            form_frame, bg=self.theme["bg_card"])
         # Hidden initially
         self.forgot_step2_frame.pack_forget()
 
@@ -1195,19 +1245,22 @@ class AuthFrame(tk.Frame):
         lang = self.parent.current_lang
         if not email:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_email_required"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_email_required"])
             return
 
         security_question = self.db.get_security_question(email)
         if not security_question:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_no_user_email"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_no_user_email"])
             return
 
         # Show Question, answer input, new password and submit button
-        self.card.place(relx=0.5, rely=0.5, anchor="center", width=450, height=600)
+        self.card.place(relx=0.5, rely=0.5, anchor="center",
+                        width=450, height=600)
         self.forgot_step2_frame.pack(fill="x", pady=10)
-        self.forgot_email_entry.config(state="disabled") # lock email
+        self.forgot_email_entry.config(state="disabled")  # lock email
 
         label_font = ("Segoe UI", 9, "bold")
         entry_font = ("Segoe UI", 10)
@@ -1217,15 +1270,18 @@ class AuthFrame(tk.Frame):
                  bg=self.theme["bg_card"], fg=self.theme["warning"], wraplength=350, justify="left").pack(anchor="w", pady=(5, 5))
 
         # Answer
-        tk.Label(self.forgot_step2_frame, text=TRANSLATIONS[lang]["security_answer"], font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(5, 2))
+        tk.Label(self.forgot_step2_frame, text=TRANSLATIONS[lang]["security_answer"], font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(5, 2))
         self.forgot_ans_entry = tk.Entry(self.forgot_step2_frame, font=entry_font, bg=self.theme["bg_main"], fg=self.theme["text_primary"],
                                          highlightbackground=self.theme["border"], highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"])
         self.forgot_ans_entry.pack(fill="x", ipady=3, pady=(0, 8))
         bind_focus_highlight(self.forgot_ans_entry, self.theme)
 
         # New Password
-        tk.Label(self.forgot_step2_frame, text=TRANSLATIONS[lang]["new_password"], font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(5, 2))
-        pwd_container = tk.Frame(self.forgot_step2_frame, bg=self.theme["bg_card"])
+        tk.Label(self.forgot_step2_frame, text=TRANSLATIONS[lang]["new_password"], font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(5, 2))
+        pwd_container = tk.Frame(
+            self.forgot_step2_frame, bg=self.theme["bg_card"])
         pwd_container.pack(fill="x", pady=(0, 8))
         self.forgot_pwd_entry = tk.Entry(pwd_container, font=entry_font, bg=self.theme["bg_main"], show="*", fg=self.theme["text_primary"],
                                          highlightbackground=self.theme["border"], highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"])
@@ -1234,20 +1290,25 @@ class AuthFrame(tk.Frame):
         eye_btn = tk.Button(pwd_container, text="👁", font=("Segoe UI", 9), bg=self.theme["border"], fg=self.theme["text_primary"],
                             relief="flat", bd=0, cursor="hand2", width=3)
         eye_btn.pack(side="right", fill="y", padx=(2, 0))
-        eye_btn.config(command=lambda: self.toggle_password_visibility(self.forgot_pwd_entry, eye_btn))
+        eye_btn.config(command=lambda: self.toggle_password_visibility(
+            self.forgot_pwd_entry, eye_btn))
 
         # Confirm Password
-        tk.Label(self.forgot_step2_frame, text=TRANSLATIONS[lang]["confirm_new_password"], font=label_font, bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(5, 2))
-        pwd_container2 = tk.Frame(self.forgot_step2_frame, bg=self.theme["bg_card"])
+        tk.Label(self.forgot_step2_frame, text=TRANSLATIONS[lang]["confirm_new_password"], font=label_font,
+                 bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(anchor="w", pady=(5, 2))
+        pwd_container2 = tk.Frame(
+            self.forgot_step2_frame, bg=self.theme["bg_card"])
         pwd_container2.pack(fill="x", pady=(0, 15))
         self.forgot_pwd_confirm = tk.Entry(pwd_container2, font=entry_font, bg=self.theme["bg_main"], show="*", fg=self.theme["text_primary"],
                                            highlightbackground=self.theme["border"], highlightthickness=1, bd=0, insertbackground=self.theme["text_primary"])
-        self.forgot_pwd_confirm.pack(side="left", fill="x", expand=True, ipady=3)
+        self.forgot_pwd_confirm.pack(
+            side="left", fill="x", expand=True, ipady=3)
         bind_focus_highlight(self.forgot_pwd_confirm, self.theme)
         eye_btn2 = tk.Button(pwd_container2, text="👁", font=("Segoe UI", 9), bg=self.theme["border"], fg=self.theme["text_primary"],
                              relief="flat", bd=0, cursor="hand2", width=3)
         eye_btn2.pack(side="right", fill="y", padx=(2, 0))
-        eye_btn2.config(command=lambda: self.toggle_password_visibility(self.forgot_pwd_confirm, eye_btn2))
+        eye_btn2.config(command=lambda: self.toggle_password_visibility(
+            self.forgot_pwd_confirm, eye_btn2))
 
         # Reset Submit Button
         reset_btn = create_flat_button(self.forgot_step2_frame, "🔒 Reset Password", self.theme["primary"], "#ffffff",
@@ -1263,7 +1324,8 @@ class AuthFrame(tk.Frame):
 
         if not answer or not new_pwd or not confirm_pwd:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_missing_fields"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_missing_fields"])
             return
 
         ok, msg = validate_password_strength(new_pwd)
@@ -1274,19 +1336,22 @@ class AuthFrame(tk.Frame):
 
         if new_pwd != confirm_pwd:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_pwd_match_err"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_pwd_match_err"])
             return
 
         # Fetch question
         question = self.db.get_security_question(email)
         if not question:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_no_user_email"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_no_user_email"])
             return
         try:
             self.db.reset_password(email, question, answer, new_pwd)
             play_success_sound()
-            messagebox.showinfo("Success", TRANSLATIONS[lang]["msg_pwd_reset_success"])
+            messagebox.showinfo(
+                "Success", TRANSLATIONS[lang]["msg_pwd_reset_success"])
             self.show_login_view()
         except ValueError as exc:
             play_error_sound()
@@ -1299,7 +1364,8 @@ class AuthFrame(tk.Frame):
 
         if not credential or not password:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_fields_required"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_fields_required"])
             return
 
         user = self.db.authenticate_user(credential, password)
@@ -1323,22 +1389,26 @@ class AuthFrame(tk.Frame):
 
         if not full_name or not email or not password or not confirm or not question or not answer:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_missing_fields"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_missing_fields"])
             return
 
         if not validate_full_name(full_name):
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_invalid_name"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_invalid_name"])
             return
 
         if not validate_email(email):
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_invalid_email"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_invalid_email"])
             return
 
         if username and len(username) < 3:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_invalid_username"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_invalid_username"])
             return
 
         ok, msg = validate_password_strength(password)
@@ -1349,11 +1419,13 @@ class AuthFrame(tk.Frame):
 
         if password != confirm:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_pwd_match_err"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_pwd_match_err"])
             return
 
         try:
-            user = self.db.register_user(full_name, email, username if username else None, password, question, answer)
+            user = self.db.register_user(
+                full_name, email, username if username else None, password, question, answer)
             if self.parent.current_lang != "en":
                 self.db.change_language(user["id"], self.parent.current_lang)
                 user["language"] = self.parent.current_lang
@@ -1367,13 +1439,15 @@ class AuthFrame(tk.Frame):
             sec_val = sec_entry.get().strip() if sec_entry else ""
             bat_val = bat_entry.get().strip() if bat_entry else ""
             if any([dept_val, cls_val, sec_val, bat_val]):
-                self.db.update_academic_profile(user["id"], dept_val, cls_val, sec_val, bat_val)
+                self.db.update_academic_profile(
+                    user["id"], dept_val, cls_val, sec_val, bat_val)
             user["department"] = dept_val
             user["class_name"] = cls_val
             user["section"] = sec_val
             user["batch_year"] = bat_val
             play_success_sound()
-            messagebox.showinfo("Success", TRANSLATIONS[lang]["msg_reg_success"])
+            messagebox.showinfo(
+                "Success", TRANSLATIONS[lang]["msg_reg_success"])
             self.on_login_success(user)
         except ValueError as exc:
             play_error_sound()
@@ -1394,7 +1468,8 @@ class PlannerFrame(tk.Frame):
         self.current_theme_name = current_theme_name
         self._initial_tab = initial_tab
 
-        self.manager = TaskManager(DATA_FILE_BASE, db_file=DB_FILE, user_id=self.current_user["id"])
+        self.manager = TaskManager(
+            DATA_FILE_BASE, db_file=DB_FILE, user_id=self.current_user["id"])
         self.manager.load()
 
         # Pomodoro Timer State
@@ -1415,17 +1490,20 @@ class PlannerFrame(tk.Frame):
         # Create demo study groups for the user if none exist
         self.db.create_demo_groups_for_user_if_none(self.current_user["id"])
 
-        self.active_tab = self._initial_tab # tasks, insights, settings
+        self.active_tab = self._initial_tab  # tasks, insights, settings
         self._build_layout()
         self._refresh_tasks_table()
 
         # Keyboard shortcuts and double-click events for interactive control
         self.tree.bind("<Double-1>", lambda e: self._on_edit_task())
         self.tree.bind("<Delete>", lambda e: self._on_delete_task())
-        self.tree.bind("<space>", lambda e: self._on_complete_task() if self.tree.selection() else None)
-        
-        self.bind_all("<Control-n>", lambda e: self._on_add_task() if self.active_tab == "tasks" else None)
-        self.bind_all("<Control-f>", lambda e: self.search_entry.focus_set() if self.active_tab == "tasks" else None)
+        self.tree.bind("<space>", lambda e: self._on_complete_task()
+                       if self.tree.selection() else None)
+
+        self.bind_all("<Control-n>", lambda e: self._on_add_task()
+                      if self.active_tab == "tasks" else None)
+        self.bind_all("<Control-f>", lambda e: self.search_entry.focus_set()
+                      if self.active_tab == "tasks" else None)
         self.bind_all("<Control-l>", lambda e: self._logout())
 
     def _build_layout(self):
@@ -1440,7 +1518,8 @@ class PlannerFrame(tk.Frame):
         self.sidebar.grid_propagate(False)
 
         # User profile area in sidebar
-        avatar = tk.Label(self.sidebar, text="🎓", font=("Segoe UI", 36), bg=self.theme["bg_card"])
+        avatar = tk.Label(self.sidebar, text="🎓", font=(
+            "Segoe UI", 36), bg=self.theme["bg_card"])
         avatar.pack(pady=(15, 2))
 
         user_name_lbl = tk.Label(self.sidebar, text=self.current_user["full_name"], font=("Segoe UI", 11, "bold"),
@@ -1513,7 +1592,7 @@ class PlannerFrame(tk.Frame):
         # Log Out uses the amber "warning" colour so it stays prominent but is
         # clearly distinct from the red Exit button below it.
         logout_btn = create_flat_button(bottom_frame, TRANSLATIONS[lang]["sidebar_logout"], self.theme["warning"], "#ffffff",
-                                         self._logout, hover_bg=self.theme["warning_hover"])
+                                        self._logout, hover_bg=self.theme["warning_hover"])
         logout_btn.pack(fill="x", padx=25, pady=(0, 8))
 
         # Exit (closing the whole app) is the destructive red action; asks first.
@@ -1524,14 +1603,16 @@ class PlannerFrame(tk.Frame):
 
         # 2. Main Workspace Content Area
         self.content_frame = tk.Frame(self, bg=self.theme["bg_main"])
-        self.content_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
+        self.content_frame.grid(
+            row=0, column=1, sticky="nsew", padx=20, pady=20)
         self.content_frame.grid_columnconfigure(0, weight=1)
         self.content_frame.grid_rowconfigure(1, weight=1)
 
         # Default header (updates dynamically)
-        self.header_frame = tk.Frame(self.content_frame, bg=self.theme["bg_main"])
+        self.header_frame = tk.Frame(
+            self.content_frame, bg=self.theme["bg_main"])
         self.header_frame.grid(row=0, column=0, sticky="ew", pady=(0, 15))
-        
+
         self.header_title = tk.Label(self.header_frame, text=TRANSLATIONS[lang]["workspace_title"], font=("Segoe UI", 16, "bold"),
                                      bg=self.theme["bg_main"], fg=self.theme["text_primary"])
         self.header_title.pack(anchor="w")
@@ -1540,7 +1621,8 @@ class PlannerFrame(tk.Frame):
         self.header_desc.pack(anchor="w")
 
         # Container for changing panels
-        self.panel_container = tk.Frame(self.content_frame, bg=self.theme["bg_main"])
+        self.panel_container = tk.Frame(
+            self.content_frame, bg=self.theme["bg_main"])
         self.panel_container.grid(row=1, column=0, sticky="nsew")
         self.panel_container.grid_columnconfigure(0, weight=1)
         self.panel_container.grid_rowconfigure(0, weight=1)
@@ -1576,7 +1658,7 @@ class PlannerFrame(tk.Frame):
             self._stop_lan_discovery()
         self.active_tab = tab_name
         lang = self.parent.current_lang
-        
+
         # Reset sidebar highlights
         buttons = [
             (self.btn_tasks, "tasks"),
@@ -1599,7 +1681,8 @@ class PlannerFrame(tk.Frame):
             else:
                 btn._base_bg = self.theme["bg_card"]
                 btn._hover_bg = self.theme["border"]
-                btn.config(bg=self.theme["bg_card"], fg=self.theme["text_primary"])
+                btn.config(bg=self.theme["bg_card"],
+                           fg=self.theme["text_primary"])
 
         # Unpack everything in container
         self.tasks_panel.grid_forget()
@@ -1613,26 +1696,31 @@ class PlannerFrame(tk.Frame):
         self.credits_panel.grid_forget()
 
         if tab_name == "tasks":
-            self.header_title.config(text=TRANSLATIONS[lang]["workspace_title"])
+            self.header_title.config(
+                text=TRANSLATIONS[lang]["workspace_title"])
             self.header_desc.config(text=TRANSLATIONS[lang]["workspace_desc"])
             self.tasks_panel.grid(row=0, column=0, sticky="nsew")
             self._refresh_tasks_table()
         elif tab_name == "timetable":
-            self.header_title.config(text=TRANSLATIONS[lang]["timetable_title"])
+            self.header_title.config(
+                text=TRANSLATIONS[lang]["timetable_title"])
             self.header_desc.config(text=TRANSLATIONS[lang]["timetable_desc"])
             self.timetable_panel.grid(row=0, column=0, sticky="nsew")
             self._draw_timetable_content()
         elif tab_name == "timer":
             self.header_title.config(text="FOCUS POMODORO TIMER")
-            self.header_desc.config(text="Manage study sessions with structured work/breaks and ambient soundscapes")
+            self.header_desc.config(
+                text="Manage study sessions with structured work/breaks and ambient soundscapes")
             self.timer_panel.grid(row=0, column=0, sticky="nsew")
         elif tab_name == "ai":
             self.header_title.config(text="STUDY ASSISTANT")
-            self.header_desc.config(text="Interactive local assistant to explain concepts, summarize tasks, or generate practice material")
+            self.header_desc.config(
+                text="Interactive local assistant to explain concepts, summarize tasks, or generate practice material")
             self.ai_panel.grid(row=0, column=0, sticky="nsew")
         elif tab_name == "groups":
             self.header_title.config(text="STUDY GROUPS WORKSPACE")
-            self.header_desc.config(text="Collaborative groups dashboard for tracking group tasks and study sessions")
+            self.header_desc.config(
+                text="Collaborative groups dashboard for tracking group tasks and study sessions")
             self.groups_panel.grid(row=0, column=0, sticky="nsew")
             self._refresh_groups_tab()
         elif tab_name == "insights":
@@ -1645,7 +1733,8 @@ class PlannerFrame(tk.Frame):
             self.header_desc.config(text=TRANSLATIONS[lang]["settings_desc"])
             self.settings_panel.grid(row=0, column=0, sticky="nsew")
         elif tab_name == "scratchpad":
-            self.header_title.config(text=TRANSLATIONS[lang]["scratchpad_title"])
+            self.header_title.config(
+                text=TRANSLATIONS[lang]["scratchpad_title"])
             self.header_desc.config(text=TRANSLATIONS[lang]["scratchpad_desc"])
             self.scratchpad_panel.grid(row=0, column=0, sticky="nsew")
             # Set focus to text widget on load
@@ -1661,7 +1750,8 @@ class PlannerFrame(tk.Frame):
     # --- TASKS TAB WORKSPACE ---
 
     def _build_tasks_panel(self):
-        self.tasks_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])
+        self.tasks_panel = tk.Frame(
+            self.panel_container, bg=self.theme["bg_main"])
         self.tasks_panel.grid_columnconfigure(0, weight=1)
         self.tasks_panel.grid_rowconfigure(1, weight=1)
 
@@ -1671,43 +1761,51 @@ class PlannerFrame(tk.Frame):
         bar_card = tk.Frame(self.tasks_panel, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
                             highlightthickness=1, bd=0)
         bar_card.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        
+
         p_frame = tk.Frame(bar_card, bg=self.theme["bg_card"])
         p_frame.pack(fill="x", padx=15, pady=12)
 
         # Keyword
-        tk.Label(p_frame, text=TRANSLATIONS[lang]["search"], font=("Segoe UI", 9, "bold"), bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(side="left", padx=(0, 4))
+        tk.Label(p_frame, text=TRANSLATIONS[lang]["search"], font=(
+            "Segoe UI", 9, "bold"), bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(side="left", padx=(0, 4))
         self.search_var = tk.StringVar()
         self.search_entry = tk.Entry(p_frame, textvariable=self.search_var, width=16, font=("Segoe UI", 10),
                                      bg=self.theme["bg_main"], fg=self.theme["text_primary"], insertbackground=self.theme["text_primary"],
                                      highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
         self.search_entry.pack(side="left", padx=(0, 10), ipady=2)
-        self.search_entry.bind("<KeyRelease>", lambda e: self._refresh_tasks_table())
+        self.search_entry.bind(
+            "<KeyRelease>", lambda e: self._refresh_tasks_table())
         bind_focus_highlight(self.search_entry, self.theme)
 
         # Status Filter
-        tk.Label(p_frame, text=TRANSLATIONS[lang]["status"], font=("Segoe UI", 9, "bold"), bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(side="left", padx=(0, 4))
+        tk.Label(p_frame, text=TRANSLATIONS[lang]["status"], font=(
+            "Segoe UI", 9, "bold"), bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(side="left", padx=(0, 4))
         self.filter_status_var = tk.StringVar(value="All")
         self.filter_status_box = ttk.Combobox(p_frame, textvariable=self.filter_status_var, values=["All", "Pending", "Completed", "Overdue"],
                                               state="readonly", width=10, font=("Segoe UI", 9))
         self.filter_status_box.pack(side="left", padx=(0, 10))
-        self.filter_status_box.bind("<<ComboboxSelected>>", lambda e: self._refresh_tasks_table())
+        self.filter_status_box.bind(
+            "<<ComboboxSelected>>", lambda e: self._refresh_tasks_table())
 
         # Priority Filter
-        tk.Label(p_frame, text=TRANSLATIONS[lang]["priority"], font=("Segoe UI", 9, "bold"), bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(side="left", padx=(0, 4))
+        tk.Label(p_frame, text=TRANSLATIONS[lang]["priority"], font=(
+            "Segoe UI", 9, "bold"), bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(side="left", padx=(0, 4))
         self.filter_priority_var = tk.StringVar(value="All")
         self.filter_priority_box = ttk.Combobox(p_frame, textvariable=self.filter_priority_var, values=["All"] + list(PRIORITY_LEVELS),
                                                 state="readonly", width=8, font=("Segoe UI", 9))
         self.filter_priority_box.pack(side="left", padx=(0, 10))
-        self.filter_priority_box.bind("<<ComboboxSelected>>", lambda e: self._refresh_tasks_table())
+        self.filter_priority_box.bind(
+            "<<ComboboxSelected>>", lambda e: self._refresh_tasks_table())
 
         # Sort Order
-        tk.Label(p_frame, text=TRANSLATIONS[lang]["sort_by"], font=("Segoe UI", 9, "bold"), bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(side="left", padx=(0, 4))
+        tk.Label(p_frame, text=TRANSLATIONS[lang]["sort_by"], font=(
+            "Segoe UI", 9, "bold"), bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(side="left", padx=(0, 4))
         self.sort_var = tk.StringVar(value="Due Date")
         self.sort_box = ttk.Combobox(p_frame, textvariable=self.sort_var, values=["Due Date", "Priority", "Title", "Category"],
                                      state="readonly", width=10, font=("Segoe UI", 9))
         self.sort_box.pack(side="left", padx=(0, 10))
-        self.sort_box.bind("<<ComboboxSelected>>", lambda e: self._refresh_tasks_table())
+        self.sort_box.bind("<<ComboboxSelected>>",
+                           lambda e: self._refresh_tasks_table())
 
         # Reset button
         clear_btn = create_flat_button(p_frame, TRANSLATIONS[lang]["clear"], self.theme["border"], self.theme["text_primary"],
@@ -1724,7 +1822,7 @@ class PlannerFrame(tk.Frame):
         # Style Treeview widget specifically
         style = ttk.Style()
         style.theme_use("clam")
-        
+
         # Configure overall treeview appearance
         style.configure("Treeview",
                         background=self.theme["bg_card"],
@@ -1738,7 +1836,8 @@ class PlannerFrame(tk.Frame):
                         font=("Segoe UI", 10, "bold"),
                         relief="flat")
         style.map("Treeview.Heading",
-                  background=[("active", self.theme["primary"]), ("!active", self.theme["border"])],
+                  background=[("active", self.theme["primary"]),
+                              ("!active", self.theme["border"])],
                   foreground=[("active", "#ffffff"), ("!active", self.theme["text_primary"])])
         style.map("Treeview",
                   background=[("selected", self.theme["primary"])],
@@ -1764,7 +1863,8 @@ class PlannerFrame(tk.Frame):
                         lightcolor=self.theme["scroll_thumb"],
                         darkcolor=self.theme["scroll_thumb"])
 
-        columns = ("id", "title", "category", "priority", "deadline", "status", "days")
+        columns = ("id", "title", "category", "priority",
+                   "deadline", "status", "days")
         headings = {
             "id": TRANSLATIONS[lang]["col_id"],
             "title": TRANSLATIONS[lang]["col_title"],
@@ -1777,20 +1877,24 @@ class PlannerFrame(tk.Frame):
         widths = {"id": 35, "title": 220, "category": 90, "priority": 75, "deadline": 95,
                   "status": 85, "days": 100}
 
-        self.tree = ttk.Treeview(grid_card, columns=columns, show="headings", selectmode="browse")
+        self.tree = ttk.Treeview(
+            grid_card, columns=columns, show="headings", selectmode="browse")
         for col in columns:
             self.tree.heading(col, text=headings[col], anchor="w")
             self.tree.column(col, width=widths[col], anchor="w")
 
-        scrollbar = ttk.Scrollbar(grid_card, orient="vertical", command=self.tree.yview)
+        scrollbar = ttk.Scrollbar(
+            grid_card, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=scrollbar.set)
-        
+
         self.tree.grid(row=0, column=0, sticky="nsew")
         scrollbar.grid(row=0, column=1, sticky="ns")
 
         # Color row tags
-        self.tree.tag_configure("completed", background=self.theme["success_bg"], foreground="#ffffff" if self.current_theme_name == "dark" else "#064e3b")
-        self.tree.tag_configure("overdue", background=self.theme["danger_bg"], foreground="#ffffff" if self.current_theme_name == "dark" else "#7f1d1d")
+        self.tree.tag_configure(
+            "completed", background=self.theme["success_bg"], foreground="#ffffff" if self.current_theme_name == "dark" else "#064e3b")
+        self.tree.tag_configure(
+            "overdue", background=self.theme["danger_bg"], foreground="#ffffff" if self.current_theme_name == "dark" else "#7f1d1d")
 
         # Empty-state overlay (shown when the table has no rows). Placed centered
         # over the tree area; toggled in _refresh_tasks_table.
@@ -1828,7 +1932,8 @@ class PlannerFrame(tk.Frame):
         # Keyword filter (search title + desc)
         kw = self.search_var.get().strip().lower()
         if kw:
-            tasks = [t for t in tasks if kw in t.title.lower() or kw in t.description.lower()]
+            tasks = [t for t in tasks if kw in t.title.lower()
+                     or kw in t.description.lower()]
 
         # Status filter
         status = self.filter_status_var.get()
@@ -1849,7 +1954,8 @@ class PlannerFrame(tk.Frame):
         if s_mode == "Due Date":
             tasks = sorted(tasks, key=lambda t: t.deadline)
         elif s_mode == "Priority":
-            order = {level: index for index, level in enumerate(PRIORITY_LEVELS)}
+            order = {level: index for index,
+                     level in enumerate(PRIORITY_LEVELS)}
             tasks = sorted(tasks, key=lambda t: order[t.priority])
         elif s_mode == "Title":
             tasks = sorted(tasks, key=lambda t: t.title.lower())
@@ -1861,7 +1967,7 @@ class PlannerFrame(tk.Frame):
     def _refresh_tasks_table(self):
         for row in self.tree.get_children():
             self.tree.delete(row)
-        
+
         lang = self.parent.current_lang
         filtered = self._get_filtered_tasks()
         for t in filtered:
@@ -1872,9 +1978,11 @@ class PlannerFrame(tk.Frame):
                 days_txt = TRANSLATIONS[lang]["completed_status"]
             elif t.is_overdue():
                 tag = "overdue"
-                days_txt = TRANSLATIONS[lang]["days_overdue"].format(abs(t.days_left()))
+                days_txt = TRANSLATIONS[lang]["days_overdue"].format(
+                    abs(t.days_left()))
             else:
-                days_txt = TRANSLATIONS[lang]["days_left"].format(t.days_left())
+                days_txt = TRANSLATIONS[lang]["days_left"].format(
+                    t.days_left())
 
             self.tree.insert("", "end", values=(
                 t.task_id, t.title, t.category, t.priority,
@@ -1883,16 +1991,19 @@ class PlannerFrame(tk.Frame):
 
         total = self.manager.get_summary()["total"]
         completed = self.manager.get_summary()["completed"]
-        self.status_lbl.config(text=TRANSLATIONS[lang]["shown_summary"].format(len(filtered), completed, total))
+        self.status_lbl.config(text=TRANSLATIONS[lang]["shown_summary"].format(
+            len(filtered), completed, total))
 
         # Empty-state: distinguish "no tasks yet" from "no matches for filters".
         if not filtered:
             if total == 0:
-                self.tasks_empty_title.config(text=TRANSLATIONS[lang].get("empty_tasks_title", "No tasks yet"))
+                self.tasks_empty_title.config(text=TRANSLATIONS[lang].get(
+                    "empty_tasks_title", "No tasks yet"))
                 self.tasks_empty_hint.config(text=TRANSLATIONS[lang].get(
                     "empty_tasks_hint", "Click “Add New Task” to create your first study task."))
             else:
-                self.tasks_empty_title.config(text=TRANSLATIONS[lang].get("empty_filter_title", "No matching tasks"))
+                self.tasks_empty_title.config(text=TRANSLATIONS[lang].get(
+                    "empty_filter_title", "No matching tasks"))
                 self.tasks_empty_hint.config(text=TRANSLATIONS[lang].get(
                     "empty_filter_hint", "Try adjusting your search or filters, or click Clear."))
             self.tasks_empty_frame.place(relx=0.5, rely=0.5, anchor="center")
@@ -1942,7 +2053,8 @@ class PlannerFrame(tk.Frame):
         if getattr(dialog, "result", None) is None:
             return
         title, priority, deadline, desc, category = dialog.result
-        self.manager.update_task(task_id, title, priority, deadline, desc, category)
+        self.manager.update_task(
+            task_id, title, priority, deadline, desc, category)
         self.manager.save()
         self._refresh_tasks_table()
 
@@ -1969,23 +2081,31 @@ class PlannerFrame(tk.Frame):
     # --- INSIGHTS PANEL ---
 
     def _build_insights_panel(self):
-        self.insights_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])
+        self.insights_panel = tk.Frame(
+            self.panel_container, bg=self.theme["bg_main"])
         self.insights_panel.grid_columnconfigure(0, weight=1)
         self.insights_panel.grid_columnconfigure(1, weight=1)
         self.insights_panel.grid_rowconfigure(0, weight=1)
         self.insights_panel.grid_rowconfigure(1, weight=1)
 
         # 4 blocks in grid
-        self.canvas_completion = tk.Canvas(self.insights_panel, bg=self.theme["bg_card"], bd=0, highlightthickness=0)
-        self.canvas_completion.grid(row=0, column=0, padx=8, pady=8, sticky="nsew")
+        self.canvas_completion = tk.Canvas(
+            self.insights_panel, bg=self.theme["bg_card"], bd=0, highlightthickness=0)
+        self.canvas_completion.grid(
+            row=0, column=0, padx=8, pady=8, sticky="nsew")
 
-        self.canvas_priority = tk.Canvas(self.insights_panel, bg=self.theme["bg_card"], bd=0, highlightthickness=0)
-        self.canvas_priority.grid(row=0, column=1, padx=8, pady=8, sticky="nsew")
+        self.canvas_priority = tk.Canvas(
+            self.insights_panel, bg=self.theme["bg_card"], bd=0, highlightthickness=0)
+        self.canvas_priority.grid(
+            row=0, column=1, padx=8, pady=8, sticky="nsew")
 
-        self.canvas_category = tk.Canvas(self.insights_panel, bg=self.theme["bg_card"], bd=0, highlightthickness=0)
-        self.canvas_category.grid(row=1, column=0, padx=8, pady=8, sticky="nsew")
+        self.canvas_category = tk.Canvas(
+            self.insights_panel, bg=self.theme["bg_card"], bd=0, highlightthickness=0)
+        self.canvas_category.grid(
+            row=1, column=0, padx=8, pady=8, sticky="nsew")
 
-        self.canvas_trends = tk.Canvas(self.insights_panel, bg=self.theme["bg_card"], bd=0, highlightthickness=0)
+        self.canvas_trends = tk.Canvas(
+            self.insights_panel, bg=self.theme["bg_card"], bd=0, highlightthickness=0)
         self.canvas_trends.grid(row=1, column=1, padx=8, pady=8, sticky="nsew")
 
     def _draw_insights(self):
@@ -1996,86 +2116,108 @@ class PlannerFrame(tk.Frame):
 
         # Canvas dims sizing safety
         self.update_idletasks()
-        
+
         # 1. Completion Circle Gauge (Donut chart)
         c = self.canvas_completion
         c.delete("all")
         w, h = max(c.winfo_width(), 180), max(c.winfo_height(), 180)
-        c.create_text(w/2, 22, text="🎯 Task Completion", font=("Segoe UI", 11, "bold"), fill=self.theme["text_primary"])
-        
-        rate = int((summary["completed"] / summary["total"]) * 100) if summary["total"] > 0 else 0
-        
+        c.create_text(w/2, 22, text="🎯 Task Completion",
+                      font=("Segoe UI", 11, "bold"), fill=self.theme["text_primary"])
+
+        rate = int((summary["completed"] / summary["total"])
+                   * 100) if summary["total"] > 0 else 0
+
         # Draw Ring
         center_x, center_y = w/2, h/2 + 5
         r = min(w, h) / 4
-        c.create_oval(center_x-r, center_y-r, center_x+r, center_y+r, outline=self.theme["border"], width=12)
+        c.create_oval(center_x-r, center_y-r, center_x+r,
+                      center_y+r, outline=self.theme["border"], width=12)
         if rate > 0:
             extent_angle = -int((rate / 100.0) * 360)
-            c.create_arc(center_x-r, center_y-r, center_x+r, center_y+r, start=90, extent=extent_angle, outline=self.theme["success"], width=12, style="arc")
-            
-        c.create_text(center_x, center_y, text=f"{rate}%", font=("Segoe UI", 18, "bold"), fill=self.theme["text_primary"])
-        c.create_text(center_x, center_y + 22, text=f"{summary['completed']}/{summary['total']} Tasks", font=("Segoe UI", 8), fill=self.theme["text_muted"])
+            c.create_arc(center_x-r, center_y-r, center_x+r, center_y+r, start=90,
+                         extent=extent_angle, outline=self.theme["success"], width=12, style="arc")
+
+        c.create_text(center_x, center_y, text=f"{rate}%", font=(
+            "Segoe UI", 18, "bold"), fill=self.theme["text_primary"])
+        c.create_text(center_x, center_y + 22, text=f"{summary['completed']}/{summary['total']} Tasks", font=(
+            "Segoe UI", 8), fill=self.theme["text_muted"])
 
         # 2. Priority Breakdown Chart
         c = self.canvas_priority
         c.delete("all")
         w, h = max(c.winfo_width(), 180), max(c.winfo_height(), 180)
-        c.create_text(w/2, 22, text="⚡ Priority Distribution", font=("Segoe UI", 11, "bold"), fill=self.theme["text_primary"])
+        c.create_text(w/2, 22, text="⚡ Priority Distribution",
+                      font=("Segoe UI", 11, "bold"), fill=self.theme["text_primary"])
 
         priorities = [
-            ("High", self.theme["danger"], summary["by_priority"].get("High", 0)),
-            ("Medium", self.theme["warning"], summary["by_priority"].get("Medium", 0)),
-            ("Low", self.theme["primary"], summary["by_priority"].get("Low", 0))
+            ("High", self.theme["danger"],
+             summary["by_priority"].get("High", 0)),
+            ("Medium", self.theme["warning"],
+             summary["by_priority"].get("Medium", 0)),
+            ("Low", self.theme["primary"],
+             summary["by_priority"].get("Low", 0))
         ]
-        
+
         y_offset = h/2 - 35
         total_p = sum(count for name, color, count in priorities)
         for name, color, count in priorities:
-            c.create_text(30, y_offset + 8, text=name, font=("Segoe UI", 9, "bold"), fill=self.theme["text_primary"], anchor="w")
+            c.create_text(30, y_offset + 8, text=name, font=("Segoe UI",
+                          9, "bold"), fill=self.theme["text_primary"], anchor="w")
             # Bar back
-            c.create_rectangle(90, y_offset, w - 80, y_offset + 14, fill=self.theme["bg_main"], outline="")
+            c.create_rectangle(90, y_offset, w - 80, y_offset +
+                               14, fill=self.theme["bg_main"], outline="")
             if total_p > 0 and count > 0:
                 bar_max = w - 170
                 bar_w = int((count / float(total_p)) * bar_max)
-                c.create_rectangle(90, y_offset, 90 + bar_w, y_offset + 14, fill=color, outline="")
-            c.create_text(w - 70, y_offset + 8, text=f"{count} tasks", font=("Segoe UI", 9), fill=self.theme["text_muted"], anchor="w")
+                c.create_rectangle(90, y_offset, 90 + bar_w,
+                                   y_offset + 14, fill=color, outline="")
+            c.create_text(w - 70, y_offset + 8, text=f"{count} tasks", font=(
+                "Segoe UI", 9), fill=self.theme["text_muted"], anchor="w")
             y_offset += 26
 
         # 3. Category breakdown Bar Chart
         c = self.canvas_category
         c.delete("all")
         w, h = max(c.winfo_width(), 180), max(c.winfo_height(), 180)
-        c.create_text(w/2, 22, text="📂 Category Breakdown", font=("Segoe UI", 11, "bold"), fill=self.theme["text_primary"])
+        c.create_text(w/2, 22, text="📂 Category Breakdown",
+                      font=("Segoe UI", 11, "bold"), fill=self.theme["text_primary"])
 
         cats = {}
         for t in tasks:
             cats[t.category] = cats.get(t.category, 0) + 1
-        
-        cats_sorted = sorted(cats.items(), key=lambda x: x[1], reverse=True)[:5] # top 5
-        
+
+        cats_sorted = sorted(cats.items(), key=lambda x: x[1], reverse=True)[
+            :5]  # top 5
+
         if not cats_sorted:
-            c.create_text(w/2, h/2, text="No tasks to classify", font=("Segoe UI", 9, "italic"), fill=self.theme["text_muted"])
+            c.create_text(w/2, h/2, text="No tasks to classify",
+                          font=("Segoe UI", 9, "italic"), fill=self.theme["text_muted"])
         else:
             y_offset = h/2 - 40
             max_count = max(count for name, count in cats_sorted)
             for name, count in cats_sorted:
                 # Truncate category name
                 disp_name = (name[:10] + "..") if len(name) > 12 else name
-                c.create_text(30, y_offset + 8, text=disp_name, font=("Segoe UI", 9, "bold"), fill=self.theme["text_primary"], anchor="w")
-                
-                c.create_rectangle(90, y_offset, w - 80, y_offset + 14, fill=self.theme["bg_main"], outline="")
+                c.create_text(30, y_offset + 8, text=disp_name, font=("Segoe UI",
+                              9, "bold"), fill=self.theme["text_primary"], anchor="w")
+
+                c.create_rectangle(
+                    90, y_offset, w - 80, y_offset + 14, fill=self.theme["bg_main"], outline="")
                 if max_count > 0 and count > 0:
                     bar_max = w - 170
                     bar_w = int((count / float(max_count)) * bar_max)
-                    c.create_rectangle(90, y_offset, 90 + bar_w, y_offset + 14, fill=self.theme["primary"], outline="")
-                c.create_text(w - 70, y_offset + 8, text=f"{count} tasks", font=("Segoe UI", 9), fill=self.theme["text_muted"], anchor="w")
+                    c.create_rectangle(
+                        90, y_offset, 90 + bar_w, y_offset + 14, fill=self.theme["primary"], outline="")
+                c.create_text(w - 70, y_offset + 8, text=f"{count} tasks", font=(
+                    "Segoe UI", 9), fill=self.theme["text_muted"], anchor="w")
                 y_offset += 20
 
         # 4. Weekly Productivity Trends (tasks due inside -3 to +3 days)
         c = self.canvas_trends
         c.delete("all")
         w, h = max(c.winfo_width(), 180), max(c.winfo_height(), 180)
-        c.create_text(w/2, 22, text="📈 Study Schedule Load (Next 5 Days)", font=("Segoe UI", 11, "bold"), fill=self.theme["text_primary"])
+        c.create_text(w/2, 22, text="📈 Study Schedule Load (Next 5 Days)",
+                      font=("Segoe UI", 11, "bold"), fill=self.theme["text_primary"])
 
         # Count tasks due on each of the next 5 days
         today = date.today()
@@ -2083,21 +2225,23 @@ class PlannerFrame(tk.Frame):
         day_labels = [d.strftime("%m/%d") for d in days]
         counts = []
         for d in days:
-            counts.append(sum(1 for t in tasks if t.deadline == d and not t.is_completed()))
+            counts.append(sum(1 for t in tasks if t.deadline ==
+                          d and not t.is_completed()))
 
         if max(counts, default=0) == 0:
-            c.create_text(w/2, h/2, text="No pending tasks due in the next 5 days", font=("Segoe UI", 9, "italic"), fill=self.theme["text_muted"], justify="center", width=180)
+            c.create_text(w/2, h/2, text="No pending tasks due in the next 5 days", font=(
+                "Segoe UI", 9, "italic"), fill=self.theme["text_muted"], justify="center", width=180)
         else:
             # Draw line graph
             padding_x = 45
             padding_y = 45
             graph_w = w - (padding_x * 2)
             graph_h = h - (padding_y * 2) - 10
-            
+
             max_val = max(counts)
             if max_val == 0:
                 max_val = 1
-                
+
             points = []
             for i, count in enumerate(counts):
                 x = padding_x + (i * (graph_w / 4.0))
@@ -2105,24 +2249,31 @@ class PlannerFrame(tk.Frame):
                 points.append((x, y))
 
             # Draw axes
-            c.create_line(padding_x, h - padding_y, w - padding_x, h - padding_y, fill=self.theme["border"], width=1)
-            c.create_line(padding_x, padding_y, padding_x, h - padding_y, fill=self.theme["border"], width=1)
+            c.create_line(padding_x, h - padding_y, w - padding_x,
+                          h - padding_y, fill=self.theme["border"], width=1)
+            c.create_line(padding_x, padding_y, padding_x, h -
+                          padding_y, fill=self.theme["border"], width=1)
 
             # Draw line & points
             for i in range(len(points) - 1):
-                c.create_line(points[i][0], points[i][1], points[i+1][0], points[i+1][1], fill=self.theme["primary"], width=2)
-            
+                c.create_line(points[i][0], points[i][1], points[i+1][0],
+                              points[i+1][1], fill=self.theme["primary"], width=2)
+
             for i, (x, y) in enumerate(points):
-                c.create_oval(x-3, y-3, x+3, y+3, fill=self.theme["warning"], outline="")
+                c.create_oval(x-3, y-3, x+3, y+3,
+                              fill=self.theme["warning"], outline="")
                 # Label date under axis
-                c.create_text(x, h - padding_y + 12, text=day_labels[i], font=("Segoe UI", 8), fill=self.theme["text_muted"])
+                c.create_text(x, h - padding_y + 12, text=day_labels[i], font=(
+                    "Segoe UI", 8), fill=self.theme["text_muted"])
                 # Label value above point
-                c.create_text(x, y - 10, text=str(counts[i]), font=("Segoe UI", 8, "bold"), fill=self.theme["text_primary"])
+                c.create_text(x, y - 10, text=str(counts[i]), font=(
+                    "Segoe UI", 8, "bold"), fill=self.theme["text_primary"])
 
     # --- PROFILE SETTINGS TAB ---
 
     def _build_settings_panel(self):
-        self.settings_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])
+        self.settings_panel = tk.Frame(
+            self.panel_container, bg=self.theme["bg_main"])
         self.settings_panel.grid_columnconfigure(0, weight=1)
 
         lang = self.parent.current_lang
@@ -2175,8 +2326,8 @@ class PlannerFrame(tk.Frame):
         bind_focus_highlight(self.set_email, self.theme)
 
         save_profile_btn = create_flat_button(profile_form, TRANSLATIONS[lang].get("update_profile_btn", "💾 Save Profile"),
-                                               self.theme["primary"], "#ffffff", self._on_update_profile,
-                                               hover_bg=self.theme["primary_hover"])
+                                              self.theme["primary"], "#ffffff", self._on_update_profile,
+                                              hover_bg=self.theme["primary_hover"])
         save_profile_btn.grid(row=3, column=1, sticky="w", padx=10, pady=15)
 
         # Academic Profile Card
@@ -2244,9 +2395,12 @@ class PlannerFrame(tk.Frame):
         # Same fixed label column as the Profile card so fields/buttons line up.
         form_frame.columnconfigure(0, minsize=170)
 
-        self.set_pwd_old = self._make_pw_field(form_frame, 0, TRANSLATIONS[lang]["current_password"], eye=False)
-        self.set_pwd_new = self._make_pw_field(form_frame, 1, TRANSLATIONS[lang]["new_password_label"])
-        self.set_pwd_confirm = self._make_pw_field(form_frame, 2, TRANSLATIONS[lang]["confirm_new_pwd_label"])
+        self.set_pwd_old = self._make_pw_field(
+            form_frame, 0, TRANSLATIONS[lang]["current_password"], eye=False)
+        self.set_pwd_new = self._make_pw_field(
+            form_frame, 1, TRANSLATIONS[lang]["new_password_label"])
+        self.set_pwd_confirm = self._make_pw_field(
+            form_frame, 2, TRANSLATIONS[lang]["confirm_new_pwd_label"])
 
         # Submit change password button (aligned with the Save Profile button above)
         change_btn = create_flat_button(form_frame, TRANSLATIONS[lang]["update_pwd_btn"], self.theme["primary"], "#ffffff",
@@ -2266,10 +2420,11 @@ class PlannerFrame(tk.Frame):
 
         tk.Label(lang_frame, text=TRANSLATIONS[lang]["lang_pref_label"], font=label_font,
                  bg=self.theme["bg_card"], fg=self.theme["text_primary"]).grid(row=0, column=0, sticky="w", pady=5)
-        
+
         # Proper themed dropdown language selector (consistent with the auth screen).
         languages = [
-            ("English", "en"), ("Deutsch", "de"), ("Español", "es"), ("Français", "fr"),
+            ("English", "en"), ("Deutsch",
+                                "de"), ("Español", "es"), ("Français", "fr"),
             ("Русский", "ru"), ("中文", "zh"), ("日本語", "ja"), ("한국어", "ko"),
             ("हिन्दी", "hi"), ("اردو", "ur"), ("العربية", "ar"), ("فارسی", "fa")
         ]
@@ -2285,8 +2440,10 @@ class PlannerFrame(tk.Frame):
             font=entry_font,
             width=16
         )
-        self.lang_setting_combo.set(code_to_name.get(self.parent.current_lang, "English"))
-        self.lang_setting_combo.grid(row=0, column=1, sticky="w", padx=10, pady=5, ipady=2)
+        self.lang_setting_combo.set(code_to_name.get(
+            self.parent.current_lang, "English"))
+        self.lang_setting_combo.grid(
+            row=0, column=1, sticky="w", padx=10, pady=5, ipady=2)
         self.lang_setting_combo.bind(
             "<<ComboboxSelected>>",
             lambda e: (self.lang_setting_combo.selection_clear(),
@@ -2308,7 +2465,8 @@ class PlannerFrame(tk.Frame):
         self.sound_enabled_var = tk.BooleanVar(value=is_sound_enabled())
         sound_chk = tk.Checkbutton(
             pref_frame,
-            text=TRANSLATIONS[lang].get("sound_toggle_label", "Enable interface sound effects"),
+            text=TRANSLATIONS[lang].get(
+                "sound_toggle_label", "Enable interface sound effects"),
             variable=self.sound_enabled_var,
             command=self._on_toggle_sound,
             font=("Segoe UI", 10),
@@ -2338,28 +2496,29 @@ class PlannerFrame(tk.Frame):
 
         # Export CSV Button
         export_btn = create_flat_button(
-            btn_row, 
-            TRANSLATIONS[lang]["export_csv_btn"], 
-            self.theme["primary"], 
+            btn_row,
+            TRANSLATIONS[lang]["export_csv_btn"],
+            self.theme["primary"],
             "#ffffff",
-            self._export_tasks_csv, 
+            self._export_tasks_csv,
             hover_bg=self.theme["primary_hover"]
         )
         export_btn.pack(side="left", padx=(0, 10))
 
         # Generate Summary Button
         summary_btn = create_flat_button(
-            btn_row, 
-            TRANSLATIONS[lang]["gen_summary_btn"], 
-            self.theme["success"], 
+            btn_row,
+            TRANSLATIONS[lang]["gen_summary_btn"],
+            self.theme["success"],
             "#ffffff",
-            self._generate_study_summary, 
+            self._generate_study_summary,
             hover_bg=self.theme["success_hover"]
         )
         summary_btn.pack(side="left", padx=10)
 
     def _build_scratchpad_panel(self):
-        self.scratchpad_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])
+        self.scratchpad_panel = tk.Frame(
+            self.panel_container, bg=self.theme["bg_main"])
         self.scratchpad_panel.grid_columnconfigure(0, weight=1)
         self.scratchpad_panel.grid_rowconfigure(0, weight=1)
 
@@ -2374,10 +2533,12 @@ class PlannerFrame(tk.Frame):
 
         # Top Button controls bar inside card
         controls_frame = tk.Frame(card, bg=self.theme["bg_card"])
-        controls_frame.grid(row=0, column=0, sticky="ew", padx=15, pady=(15, 10))
+        controls_frame.grid(row=0, column=0, sticky="ew",
+                            padx=15, pady=(15, 10))
 
         # Statistics Label
-        self.stats_var = tk.StringVar(value=TRANSLATIONS[lang]["scratchpad_stats"].format(0, 0, 0))
+        self.stats_var = tk.StringVar(
+            value=TRANSLATIONS[lang]["scratchpad_stats"].format(0, 0, 0))
         stats_lbl = tk.Label(controls_frame, textvariable=self.stats_var, font=("Segoe UI", 9, "bold"),
                              bg=self.theme["bg_card"], fg=self.theme["text_muted"])
         stats_lbl.pack(side="left")
@@ -2405,7 +2566,8 @@ class PlannerFrame(tk.Frame):
 
         # Text Area with scrollbar
         text_container = tk.Frame(card, bg=self.theme["bg_card"])
-        text_container.grid(row=1, column=0, sticky="nsew", padx=15, pady=(0, 15))
+        text_container.grid(row=1, column=0, sticky="nsew",
+                            padx=15, pady=(0, 15))
         text_container.grid_columnconfigure(0, weight=1)
         text_container.grid_rowconfigure(0, weight=1)
 
@@ -2415,7 +2577,8 @@ class PlannerFrame(tk.Frame):
 
         self.scratchpad_text = tk.Text(
             text_container,
-            font=("Consolas", 11) if self.current_theme_name == "dark" else ("Segoe UI", 11),
+            font=("Consolas", 11) if self.current_theme_name == "dark" else (
+                "Segoe UI", 11),
             bg=self.theme["bg_main"],
             fg=self.theme["text_primary"],
             insertbackground=self.theme["text_primary"],
@@ -2492,7 +2655,8 @@ class PlannerFrame(tk.Frame):
             para_count = len(paras)
 
         lang = self.parent.current_lang
-        self.stats_var.set(TRANSLATIONS[lang]["scratchpad_stats"].format(word_count, char_count, para_count))
+        self.stats_var.set(TRANSLATIONS[lang]["scratchpad_stats"].format(
+            word_count, char_count, para_count))
 
     def _save_scratchpad_notes(self):
         if getattr(self, "scratchpad_placeholder_active", False):
@@ -2539,13 +2703,16 @@ class PlannerFrame(tk.Frame):
                     f.write(content)
                 play_success_sound()
                 lang = self.parent.current_lang
-                messagebox.showinfo("Export Success", TRANSLATIONS[lang]["scratchpad_save_success"], parent=self)
+                messagebox.showinfo(
+                    "Export Success", TRANSLATIONS[lang]["scratchpad_save_success"], parent=self)
             except Exception as exc:
                 play_error_sound()
-                messagebox.showerror("Error", f"Failed to export note: {exc}", parent=self)
+                messagebox.showerror(
+                    "Error", f"Failed to export note: {exc}", parent=self)
 
     def _build_credits_panel(self):
-        self.credits_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])
+        self.credits_panel = tk.Frame(
+            self.panel_container, bg=self.theme["bg_main"])
         self.credits_panel.grid_columnconfigure(0, weight=1)
         self.credits_panel.grid_rowconfigure(0, weight=1)
 
@@ -2571,7 +2738,8 @@ class PlannerFrame(tk.Frame):
                  font=("Segoe UI", 10), justify="center",
                  bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(0, 18))
 
-        tk.Frame(inner, bg=self.theme["border"], height=1, width=560).pack(pady=(0, 18))
+        tk.Frame(inner, bg=self.theme["border"],
+                 height=1, width=560).pack(pady=(0, 18))
 
         tk.Label(inner, text="CONTRIBUTORS", font=("Segoe UI", 10, "bold"),
                  bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(0, 14))
@@ -2594,10 +2762,10 @@ class PlannerFrame(tk.Frame):
             },
             {
                 "name": "Ifrahim Yousuf",
-                "handle": "@ifrahim-yousaf",
+                "handle": "@Ifrahim-yousuf",
                 "role": "UI/UX Designer · Front-end Development",
                 "email": "ifrahimsf@gmail.com",
-                "github": "https://github.com/ifrahim-yousaf",
+                "github": "https://github.com/Ifrahim-yousuf",
             },
             {
                 "name": "Taha Siddiqui",
@@ -2616,7 +2784,8 @@ class PlannerFrame(tk.Frame):
 
             cell = tk.Frame(grid_frame, bg=self.theme["bg_card"],
                             highlightbackground=self.theme["border"], highlightthickness=1)
-            cell.grid(row=row, column=col, padx=10, pady=8, sticky="nsew", ipadx=22, ipady=18)
+            cell.grid(row=row, column=col, padx=10, pady=8,
+                      sticky="nsew", ipadx=22, ipady=18)
 
             tk.Label(cell, text=contributor["name"], font=("Segoe UI", 14, "bold"),
                      bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(pady=(0, 3))
@@ -2627,7 +2796,8 @@ class PlannerFrame(tk.Frame):
                                  font=("Segoe UI", 10, "underline"),
                                  bg=self.theme["bg_card"], fg=self.theme["primary"], cursor="hand2")
             email_lbl.pack(pady=(0, 3))
-            email_lbl.bind("<Button-1>", lambda e, em=contributor["email"]: self._copy_email(em))
+            email_lbl.bind("<Button-1>", lambda e,
+                           em=contributor["email"]: self._copy_email(em))
 
             tk.Label(cell, text=TRANSLATIONS[lang]["credits_copy_hint"], font=("Segoe UI", 8),
                      bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(0, 10))
@@ -2641,7 +2811,8 @@ class PlannerFrame(tk.Frame):
                 font=("Segoe UI", 9, "bold"), padx=14, pady=6
             ).pack()
 
-        tk.Frame(inner, bg=self.theme["border"], height=1, width=560).pack(pady=(20, 12))
+        tk.Frame(inner, bg=self.theme["border"],
+                 height=1, width=560).pack(pady=(20, 12))
         tk.Label(inner, text="MIT License © 2026 Smart Study Planner Contributors",
                  font=("Segoe UI", 9), bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack()
 
@@ -2650,14 +2821,16 @@ class PlannerFrame(tk.Frame):
         self.parent.clipboard_append(email)
         self.parent.update()
         play_success_sound()
-        messagebox.showinfo("Clipboard", TRANSLATIONS[self.parent.current_lang]["credits_email_copied"])
+        messagebox.showinfo(
+            "Clipboard", TRANSLATIONS[self.parent.current_lang]["credits_email_copied"])
 
     def _open_url(self, url):
         import webbrowser
         webbrowser.open_new_tab(url)
 
     def _build_timetable_panel(self):
-        self.timetable_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])
+        self.timetable_panel = tk.Frame(
+            self.panel_container, bg=self.theme["bg_main"])
         self.timetable_panel.grid_columnconfigure(0, weight=1)
         self.timetable_panel.grid_rowconfigure(1, weight=1)
 
@@ -2667,16 +2840,16 @@ class PlannerFrame(tk.Frame):
         top_bar = tk.Frame(self.timetable_panel, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
                            highlightthickness=1, bd=0)
         top_bar.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        
+
         bar_frame = tk.Frame(top_bar, bg=self.theme["bg_card"])
         bar_frame.pack(fill="x", padx=15, pady=10)
 
-        self.timetable_view_mode = "week" # default
-        
+        self.timetable_view_mode = "week"  # default
+
         self.btn_view_week = create_flat_button(
-            bar_frame, 
-            TRANSLATIONS[lang]["view_week"], 
-            self.theme["primary"], 
+            bar_frame,
+            TRANSLATIONS[lang]["view_week"],
+            self.theme["primary"],
             "#ffffff",
             lambda: self._switch_timetable_view("week"),
             font=("Segoe UI", 9, "bold")
@@ -2684,9 +2857,9 @@ class PlannerFrame(tk.Frame):
         self.btn_view_week.pack(side="left", padx=5)
 
         self.btn_view_month = create_flat_button(
-            bar_frame, 
-            TRANSLATIONS[lang]["view_month"], 
-            self.theme["bg_card"], 
+            bar_frame,
+            TRANSLATIONS[lang]["view_month"],
+            self.theme["bg_card"],
             self.theme["text_primary"],
             lambda: self._switch_timetable_view("month"),
             hover_bg=self.theme["border"],
@@ -2695,9 +2868,9 @@ class PlannerFrame(tk.Frame):
         self.btn_view_month.pack(side="left", padx=5)
 
         self.btn_view_6month = create_flat_button(
-            bar_frame, 
-            TRANSLATIONS[lang]["view_6month"], 
-            self.theme["bg_card"], 
+            bar_frame,
+            TRANSLATIONS[lang]["view_6month"],
+            self.theme["bg_card"],
             self.theme["text_primary"],
             lambda: self._switch_timetable_view("6month"),
             hover_bg=self.theme["border"],
@@ -2725,55 +2898,68 @@ class PlannerFrame(tk.Frame):
         )
         export_ics_btn.pack(side="right", padx=5)
 
-        self.timetable_canvas = tk.Canvas(self.timetable_panel, bg=self.theme["bg_main"], bd=0, highlightthickness=0)
-        self.timetable_scrollbar = ttk.Scrollbar(self.timetable_panel, orient="vertical", command=self.timetable_canvas.yview)
-        
-        self.timetable_scrollable_frame = tk.Frame(self.timetable_canvas, bg=self.theme["bg_main"])
+        self.timetable_canvas = tk.Canvas(
+            self.timetable_panel, bg=self.theme["bg_main"], bd=0, highlightthickness=0)
+        self.timetable_scrollbar = ttk.Scrollbar(
+            self.timetable_panel, orient="vertical", command=self.timetable_canvas.yview)
+
+        self.timetable_scrollable_frame = tk.Frame(
+            self.timetable_canvas, bg=self.theme["bg_main"])
         self.timetable_scrollable_frame.bind(
             "<Configure>",
-            lambda e: self.timetable_canvas.configure(scrollregion=self.timetable_canvas.bbox("all"))
+            lambda e: self.timetable_canvas.configure(
+                scrollregion=self.timetable_canvas.bbox("all"))
         )
-        
-        self.timetable_canvas_window = self.timetable_canvas.create_window((0, 0), window=self.timetable_scrollable_frame, anchor="nw")
-        self.timetable_canvas.configure(yscrollcommand=self.timetable_scrollbar.set)
-        
+
+        self.timetable_canvas_window = self.timetable_canvas.create_window(
+            (0, 0), window=self.timetable_scrollable_frame, anchor="nw")
+        self.timetable_canvas.configure(
+            yscrollcommand=self.timetable_scrollbar.set)
+
         self.timetable_canvas.grid(row=1, column=0, sticky="nsew")
         self.timetable_scrollbar.grid(row=1, column=1, sticky="ns")
-        
-        self.timetable_canvas.bind("<Configure>", lambda e: self.timetable_canvas.itemconfig(self.timetable_canvas_window, width=e.width))
+
+        self.timetable_canvas.bind("<Configure>", lambda e: self.timetable_canvas.itemconfig(
+            self.timetable_canvas_window, width=e.width))
 
         def _on_mousewheel(event):
-            self.timetable_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            self.timetable_canvas.yview_scroll(
+                int(-1 * (event.delta / 120)), "units")
+
         def _bind_mousewheel(event):
             self.timetable_canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
         def _unbind_mousewheel(event):
             self.timetable_canvas.unbind_all("<MouseWheel>")
-            
+
         self.timetable_canvas.bind("<Enter>", _bind_mousewheel)
         self.timetable_canvas.bind("<Leave>", _unbind_mousewheel)
 
     def _switch_timetable_view(self, mode):
         self.timetable_view_mode = mode
         play_click_sound()
-        
+
         for btn, m in [(self.btn_view_week, "week"), (self.btn_view_month, "month"), (self.btn_view_6month, "6month")]:
             if m == mode:
                 btn.config(bg=self.theme["primary"], fg="#ffffff")
             else:
-                btn.config(bg=self.theme["bg_card"], fg=self.theme["text_primary"])
-                
+                btn.config(bg=self.theme["bg_card"],
+                           fg=self.theme["text_primary"])
+
         self._draw_timetable_content()
 
     def _generate_timetable_schedule(self):
         play_success_sound()
-        messagebox.showinfo("Success", "Study plan generated successfully! Distributed study sessions across daily slots and monthly milestones based on task priorities.")
+        messagebox.showinfo(
+            "Success", "Study plan generated successfully! Distributed study sessions across daily slots and monthly milestones based on task priorities.")
         self._draw_timetable_content()
 
     def _export_timetable_ics(self):
         play_click_sound()
         tasks = [t for t in self.manager.tasks if t.status != "Completed"]
         if not tasks:
-            messagebox.showwarning("No Tasks", "No active tasks available to export to calendar.")
+            messagebox.showwarning(
+                "No Tasks", "No active tasks available to export to calendar.")
             return
 
         from tkinter import filedialog
@@ -2794,7 +2980,8 @@ class PlannerFrame(tk.Frame):
             "METHOD:PUBLISH"
         ]
 
-        now_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        now_str = datetime.datetime.now(
+            datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
         for t in tasks:
             dl = t.deadline
@@ -2803,7 +2990,8 @@ class PlannerFrame(tk.Frame):
                 dl_date = dl
             else:
                 try:
-                    dl_date = datetime.datetime.strptime(str(dl), "%Y-%m-%d").date()
+                    dl_date = datetime.datetime.strptime(
+                        str(dl), "%Y-%m-%d").date()
                 except Exception:
                     dl_date = datetime.date.today()
 
@@ -2811,7 +2999,8 @@ class PlannerFrame(tk.Frame):
             next_dl = (dl_date + datetime.timedelta(days=1)).strftime("%Y%m%d")
 
             desc = t.description or ""
-            desc = desc.replace("\n", "\\n").replace(",", "\\,").replace(";", "\\;")
+            desc = desc.replace("\n", "\\n").replace(
+                ",", "\\,").replace(";", "\\;")
             title = t.title.replace(",", "\\,").replace(";", "\\;")
 
             prio_num = "5"
@@ -2842,7 +3031,8 @@ class PlannerFrame(tk.Frame):
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(ics_content)
             play_success_sound()
-            messagebox.showinfo("Success", f"Calendar successfully exported to {file_path}!")
+            messagebox.showinfo(
+                "Success", f"Calendar successfully exported to {file_path}!")
         except Exception as e:
             play_error_sound()
             messagebox.showerror("Error", f"Failed to export calendar: {e}")
@@ -2851,12 +3041,14 @@ class PlannerFrame(tk.Frame):
         for widget in self.timetable_scrollable_frame.winfo_children():
             widget.destroy()
 
-        pending_tasks = [t for t in self.manager.tasks if t.status != "Completed"]
-        
+        pending_tasks = [
+            t for t in self.manager.tasks if t.status != "Completed"]
+
         if not pending_tasks:
             lang = self.parent.current_lang
             # Empty-state card (icon + title + hint), consistent with other panels.
-            no_task_card = tk.Frame(self.timetable_scrollable_frame, bg=self.theme["bg_card"], highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
+            no_task_card = tk.Frame(self.timetable_scrollable_frame,
+                                    bg=self.theme["bg_card"], highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
             no_task_card.pack(fill="x", padx=15, pady=20)
             tk.Label(no_task_card, text="🗓️", font=("Segoe UI", 40),
                      bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(28, 4))
@@ -2864,13 +3056,14 @@ class PlannerFrame(tk.Frame):
                      font=("Segoe UI", 13, "bold"),
                      bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack()
             tk.Label(no_task_card, text=TRANSLATIONS[lang].get(
-                        "empty_timetable_hint", "Add active tasks in the Tasks Workspace to build your study timetable."),
-                     font=("Segoe UI", 9),
-                     bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(2, 28))
+                "empty_timetable_hint", "Add active tasks in the Tasks Workspace to build your study timetable."),
+                font=("Segoe UI", 9),
+                bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(2, 28))
             return
 
         priority_val = {"High": 0, "Medium": 1, "Low": 2}
-        pending_tasks.sort(key=lambda t: (priority_val.get(t.priority, 3), t.deadline))
+        pending_tasks.sort(key=lambda t: (
+            priority_val.get(t.priority, 3), t.deadline))
 
         if self.timetable_view_mode == "week":
             day_tasks = {i: [] for i in range(7)}
@@ -2881,17 +3074,17 @@ class PlannerFrame(tk.Frame):
             for i in range(7):
                 day_date = date.today() + timedelta(days=i)
                 day_name = day_date.strftime("%A, %b %d")
-                
+
                 day_card = tk.Frame(self.timetable_scrollable_frame, bg=self.theme["bg_card"],
                                     highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
                 day_card.pack(fill="x", padx=15, pady=8)
-                
+
                 header_frame = tk.Frame(day_card, bg=self.theme["bg_card"])
                 header_frame.pack(fill="x", padx=15, pady=8)
-                
+
                 tk.Label(header_frame, text=day_name, font=("Segoe UI", 11, "bold"),
                          bg=self.theme["bg_card"], fg=self.theme["primary"]).pack(side="left")
-                
+
                 tasks_list = day_tasks[i]
                 if not tasks_list:
                     tk.Label(day_card, text="No tasks scheduled. Recommend review of general lectures.", font=("Segoe UI", 9, "italic"),
@@ -2900,13 +3093,14 @@ class PlannerFrame(tk.Frame):
                     for t in tasks_list:
                         t_frame = tk.Frame(day_card, bg=self.theme["bg_card"])
                         t_frame.pack(fill="x", padx=15, pady=4)
-                        
-                        hours = 3 if t.priority == "High" else (2 if t.priority == "Medium" else 1)
-                        
+
+                        hours = 3 if t.priority == "High" else (
+                            2 if t.priority == "Medium" else 1)
+
                         info_lbl = tk.Label(t_frame, text=f"• Study '{t.title}' ({t.category}) — Suggested: {hours} hour(s)",
                                             font=("Segoe UI", 10), bg=self.theme["bg_card"], fg=self.theme["text_primary"])
                         info_lbl.pack(side="left")
-                        
+
                         due_days = (t.deadline - day_date).days
                         if due_days == 0:
                             tk.Label(t_frame, text="DEADLINE TODAY", font=("Segoe UI", 8, "bold"),
@@ -2919,19 +3113,20 @@ class PlannerFrame(tk.Frame):
             for w in range(4):
                 week_start = w * 7
                 week_end = (w + 1) * 7
-                
+
                 week_card = tk.Frame(self.timetable_scrollable_frame, bg=self.theme["bg_card"],
                                      highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
                 week_card.pack(fill="x", padx=15, pady=8)
-                
+
                 header_frame = tk.Frame(week_card, bg=self.theme["bg_card"])
                 header_frame.pack(fill="x", padx=15, pady=8)
-                
+
                 tk.Label(header_frame, text=f"Week {w+1} Milestones (Days {week_start+1}-{week_end})", font=("Segoe UI", 11, "bold"),
                          bg=self.theme["bg_card"], fg=self.theme["primary"]).pack(side="left")
-                
-                week_tasks = [t for t in pending_tasks if week_start <= (t.deadline - date.today()).days < week_end]
-                
+
+                week_tasks = [t for t in pending_tasks if week_start <= (
+                    t.deadline - date.today()).days < week_end]
+
                 if not week_tasks:
                     tk.Label(week_card, text="No coursework deliverables due. Review basic course materials.", font=("Segoe UI", 9, "italic"),
                              bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(anchor="w", padx=15, pady=(0, 10))
@@ -2939,11 +3134,12 @@ class PlannerFrame(tk.Frame):
                     for t in week_tasks:
                         t_frame = tk.Frame(week_card, bg=self.theme["bg_card"])
                         t_frame.pack(fill="x", padx=15, pady=4)
-                        
+
                         tk.Label(t_frame, text=f"• Deliverable: '{t.title}' ({t.category}) — Due {t.deadline.strftime('%b %d')}",
                                  font=("Segoe UI", 10), bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(side="left")
-                        
-                        p_color = self.theme["danger"] if t.priority == "High" else (self.theme["warning"] if t.priority == "Medium" else self.theme["success"])
+
+                        p_color = self.theme["danger"] if t.priority == "High" else (
+                            self.theme["warning"] if t.priority == "Medium" else self.theme["success"])
                         tk.Label(t_frame, text=t.priority, font=("Segoe UI", 8, "bold"),
                                  fg=p_color, bg=self.theme["bg_card"]).pack(side="right")
 
@@ -2959,38 +3155,41 @@ class PlannerFrame(tk.Frame):
             for m in range(6):
                 month_start = m * 30
                 month_end = (m + 1) * 30
-                
+
                 month_card = tk.Frame(self.timetable_scrollable_frame, bg=self.theme["bg_card"],
-                                     highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
+                                      highlightbackground=self.theme["border"], highlightthickness=1, bd=0)
                 month_card.pack(fill="x", padx=15, pady=8)
-                
+
                 header_frame = tk.Frame(month_card, bg=self.theme["bg_card"])
                 header_frame.pack(fill="x", padx=15, pady=8)
-                
+
                 tk.Label(header_frame, text=f"Month {m+1} Curriculum Milestones", font=("Segoe UI", 11, "bold"),
                          bg=self.theme["bg_card"], fg=self.theme["primary"]).pack(side="left")
-                
+
                 guide_lbl = tk.Label(month_card, text=milestones[m], font=("Segoe UI", 9, "italic"),
                                      bg=self.theme["bg_card"], fg=self.theme["text_muted"], wraplength=700, justify="left")
                 guide_lbl.pack(anchor="w", padx=15, pady=(0, 10))
-                
-                month_tasks = [t for t in pending_tasks if month_start <= (t.deadline - date.today()).days < month_end]
-                
+
+                month_tasks = [t for t in pending_tasks if month_start <= (
+                    t.deadline - date.today()).days < month_end]
+
                 if month_tasks:
-                    divider = tk.Frame(month_card, height=1, bg=self.theme["border"])
+                    divider = tk.Frame(month_card, height=1,
+                                       bg=self.theme["border"])
                     divider.pack(fill="x", padx=15, pady=5)
-                    
+
                     for t in month_tasks:
-                        t_frame = tk.Frame(month_card, bg=self.theme["bg_card"])
+                        t_frame = tk.Frame(
+                            month_card, bg=self.theme["bg_card"])
                         t_frame.pack(fill="x", padx=15, pady=4)
-                        
+
                         tk.Label(t_frame, text=f"• Major Deliverable: '{t.title}' ({t.category}) — Due {t.deadline.strftime('%b %d, %Y')}",
                                  font=("Segoe UI", 10), bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(side="left")
 
     def _export_tasks_csv(self):
         from tkinter import filedialog
         import csv
-        
+
         lang = self.parent.current_lang
         file_path = filedialog.asksaveasfilename(
             defaultextension=".csv",
@@ -2999,12 +3198,13 @@ class PlannerFrame(tk.Frame):
         )
         if not file_path:
             return
-            
+
         try:
             tasks = self.manager.get_all()
             with open(file_path, mode='w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
-                writer.writerow(["ID", "Title", "Category", "Priority", "Deadline", "Completed", "Created At", "Description"])
+                writer.writerow(["ID", "Title", "Category", "Priority",
+                                "Deadline", "Completed", "Created At", "Description"])
                 for t in tasks:
                     writer.writerow([
                         t.task_id,
@@ -3017,7 +3217,8 @@ class PlannerFrame(tk.Frame):
                         t.description or ""
                     ])
             play_success_sound()
-            messagebox.showinfo("Success", TRANSLATIONS[lang]["msg_export_success"])
+            messagebox.showinfo(
+                "Success", TRANSLATIONS[lang]["msg_export_success"])
         except Exception as exc:
             play_error_sound()
             messagebox.showerror("Error", f"Failed to export: {exc}")
@@ -3031,7 +3232,7 @@ class PlannerFrame(tk.Frame):
         pending = summary["pending"]
         overdue = summary["overdue"]
         rate = int((completed / total) * 100) if total > 0 else 0
-        
+
         report = []
         report.append("==========================================")
         report.append("        SMART STUDY PLANNER REPORT        ")
@@ -3049,7 +3250,7 @@ class PlannerFrame(tk.Frame):
             count = summary["by_priority"].get(level, 0)
             report.append(f"  - {level}: {count}")
         report.append("------------------------------------------")
-        
+
         cats = {}
         for t in tasks:
             cats[t.category] = cats.get(t.category, 0) + 1
@@ -3057,16 +3258,19 @@ class PlannerFrame(tk.Frame):
         for cat, count in cats.items():
             report.append(f"  - {cat}: {count}")
         report.append("------------------------------------------")
-        
+
         report.append("ACADEMIC ADVICE & RECOMMENDATIONS:")
         if overdue > 0:
-            report.append(f"  💡 You have {overdue} overdue task(s). Focus on clearing these immediately to stay on track!")
+            report.append(
+                f"  💡 You have {overdue} overdue task(s). Focus on clearing these immediately to stay on track!")
         elif pending > 0:
-            report.append("  📈 You are on track. Keep up the good work and finish your pending assignments before deadlines.")
+            report.append(
+                "  📈 You are on track. Keep up the good work and finish your pending assignments before deadlines.")
         else:
-            report.append("  🏆 Outstanding! All your study tasks are fully completed. Keep up this high standard!")
+            report.append(
+                "  🏆 Outstanding! All your study tasks are fully completed. Keep up this high standard!")
         report.append("==========================================")
-        
+
         report_text = "\n".join(report)
         self._show_report_popup(report_text)
 
@@ -3077,32 +3281,34 @@ class PlannerFrame(tk.Frame):
         popup.configure(bg=self.theme["bg_card"])
         popup.resizable(False, False)
         popup.grab_set()
-        
+
         tk.Label(popup, text="Academic Progress Summary", font=("Segoe UI", 12, "bold"),
                  bg=self.theme["bg_card"], fg=self.theme["text_primary"]).pack(pady=(15, 10))
-                 
+
         txt_frame = tk.Frame(popup, bg=self.theme["bg_card"])
         txt_frame.pack(padx=20, pady=5, fill="both", expand=True)
-        
+
         text_widget = tk.Text(txt_frame, font=("Consolas", 10), bg=self.theme["bg_main"],
                               fg=self.theme["text_primary"], bd=0, highlightthickness=1,
                               highlightbackground=self.theme["border"], wrap="word")
         text_widget.pack(side="left", fill="both", expand=True)
         text_widget.insert("1.0", report_text)
         text_widget.config(state="disabled")
-        
-        scroll = ttk.Scrollbar(txt_frame, orient="vertical", command=text_widget.yview)
+
+        scroll = ttk.Scrollbar(
+            txt_frame, orient="vertical", command=text_widget.yview)
         text_widget.configure(yscrollcommand=scroll.set)
         scroll.pack(side="right", fill="y")
-        
+
         btn_frame = tk.Frame(popup, bg=self.theme["bg_card"])
         btn_frame.pack(pady=15)
-        
+
         def save_report():
             from tkinter import filedialog
             file_path = filedialog.asksaveasfilename(
                 defaultextension=".txt",
-                filetypes=[("Text Files", "*.txt"), ("Markdown Files", "*.md"), ("All Files", "*.*")],
+                filetypes=[("Text Files", "*.txt"),
+                           ("Markdown Files", "*.md"), ("All Files", "*.*")],
                 title="Save Report"
             )
             if file_path:
@@ -3110,14 +3316,16 @@ class PlannerFrame(tk.Frame):
                     with open(file_path, "w", encoding="utf-8") as f:
                         f.write(report_text)
                     play_success_sound()
-                    messagebox.showinfo("Success", "Report saved successfully!", parent=popup)
+                    messagebox.showinfo(
+                        "Success", "Report saved successfully!", parent=popup)
                 except Exception as exc:
                     play_error_sound()
-                    messagebox.showerror("Error", f"Failed to save: {exc}", parent=popup)
-                    
+                    messagebox.showerror(
+                        "Error", f"Failed to save: {exc}", parent=popup)
+
         create_flat_button(btn_frame, "💾 Save to File", self.theme["primary"], "#ffffff",
                            save_report, hover_bg=self.theme["primary_hover"]).pack(side="left", padx=10)
-                           
+
         create_flat_button(btn_frame, "✕ Close", self.theme["border"], self.theme["text_primary"],
                            popup.destroy, hover_bg=self.theme["bg_main"]).pack(side="left", padx=10)
 
@@ -3155,10 +3363,14 @@ class PlannerFrame(tk.Frame):
             selectbackground=[("readonly", self.theme["bg_main"])],
             selectforeground=[("readonly", self.theme["text_primary"])]
         )
-        self.parent.option_add("*TCombobox*Listbox.background", self.theme["bg_card"])
-        self.parent.option_add("*TCombobox*Listbox.foreground", self.theme["text_primary"])
-        self.parent.option_add("*TCombobox*Listbox.selectBackground", self.theme["primary"])
-        self.parent.option_add("*TCombobox*Listbox.selectForeground", "#ffffff")
+        self.parent.option_add(
+            "*TCombobox*Listbox.background", self.theme["bg_card"])
+        self.parent.option_add(
+            "*TCombobox*Listbox.foreground", self.theme["text_primary"])
+        self.parent.option_add(
+            "*TCombobox*Listbox.selectBackground", self.theme["primary"])
+        self.parent.option_add(
+            "*TCombobox*Listbox.selectForeground", "#ffffff")
         self.parent.option_add("*TCombobox*Listbox.font", "{Segoe UI} 10")
 
     def _on_toggle_sound(self):
@@ -3204,31 +3416,39 @@ class PlannerFrame(tk.Frame):
 
         if not full_name or not email:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_missing_fields"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_missing_fields"])
             return
         if not validate_full_name(full_name):
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_invalid_name"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_invalid_name"])
             return
         if not validate_email(email):
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_invalid_email"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_invalid_email"])
             return
         if username and len(username) < 3:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_invalid_username"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_invalid_username"])
             return
 
         try:
-            updated = self.db.update_user_profile(self.current_user["id"], full_name, email, username or None)
+            updated = self.db.update_user_profile(
+                self.current_user["id"], full_name, email, username or None)
             # Keep the in-memory user (and remembered login) in sync.
             self.current_user.update(updated)
             self.parent.current_user = self.current_user
             if self.parent.last_login:
-                self.parent.set_pref("last_login", updated.get("username") or updated.get("email", ""))
-                self.parent.last_login = updated.get("username") or updated.get("email", "")
+                self.parent.set_pref("last_login", updated.get(
+                    "username") or updated.get("email", ""))
+                self.parent.last_login = updated.get(
+                    "username") or updated.get("email", "")
             play_success_sound()
-            messagebox.showinfo("Success", TRANSLATIONS[lang].get("msg_profile_updated", "Profile updated successfully!"))
+            messagebox.showinfo("Success", TRANSLATIONS[lang].get(
+                "msg_profile_updated", "Profile updated successfully!"))
             # Rebuild so the sidebar name/email refresh, staying on Settings.
             self.parent._show_planner_panel(restore_tab="settings")
         except ValueError as exc:
@@ -3240,7 +3460,8 @@ class PlannerFrame(tk.Frame):
         cls_name = self.set_class_name.get().strip()
         section = self.set_section.get().strip()
         batch_year = self.set_batch_year.get().strip()
-        self.db.update_academic_profile(self.current_user["id"], dept, cls_name, section, batch_year)
+        self.db.update_academic_profile(
+            self.current_user["id"], dept, cls_name, section, batch_year)
         self.current_user["department"] = dept
         self.current_user["class_name"] = cls_name
         self.current_user["section"] = section
@@ -3258,11 +3479,13 @@ class PlannerFrame(tk.Frame):
 
         if not old_pwd or not new_pwd or not confirm_pwd:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_missing_fields"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_missing_fields"])
             return
 
         # Authenticate current credentials
-        user_verified = self.db.authenticate_user(self.current_user["email"], old_pwd)
+        user_verified = self.db.authenticate_user(
+            self.current_user["email"], old_pwd)
         if not user_verified:
             play_error_sound()
             messagebox.showerror("Error", TRANSLATIONS[lang]["msg_auth_err"])
@@ -3276,14 +3499,16 @@ class PlannerFrame(tk.Frame):
 
         if new_pwd != confirm_pwd:
             play_error_sound()
-            messagebox.showerror("Error", TRANSLATIONS[lang]["msg_pwd_match_err"])
+            messagebox.showerror(
+                "Error", TRANSLATIONS[lang]["msg_pwd_match_err"])
             return
 
         # Update password
         try:
             self.db.change_password(self.current_user["id"], new_pwd)
             play_success_sound()
-            messagebox.showinfo("Success", TRANSLATIONS[lang]["msg_change_pwd_success"])
+            messagebox.showinfo(
+                "Success", TRANSLATIONS[lang]["msg_change_pwd_success"])
             self.set_pwd_old.delete(0, "end")
             self.set_pwd_new.delete(0, "end")
             self.set_pwd_confirm.delete(0, "end")
@@ -3296,7 +3521,8 @@ class PlannerFrame(tk.Frame):
     def _add_particle_bg(self, panel, count=22):
         """Adds an animated particle background filling ``panel``, lowered behind
         any cards. Used on sparse 'hero' screens; data-dense screens stay clean."""
-        canvas = ParticleCanvas(panel, self.theme, base_image=None, count=count)
+        canvas = ParticleCanvas(
+            panel, self.theme, base_image=None, count=count)
         canvas.place(x=0, y=0, relwidth=1.0, relheight=1.0)
         # Misc.lower (Canvas.lower is aliased to canvas-item lowering) pushes the
         # whole widget behind the card in the sibling stacking order.
@@ -3304,7 +3530,8 @@ class PlannerFrame(tk.Frame):
         return canvas
 
     def _build_timer_panel(self):
-        self.timer_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])
+        self.timer_panel = tk.Frame(
+            self.panel_container, bg=self.theme["bg_main"])
         self.timer_panel.grid_columnconfigure(0, weight=1)
         self.timer_panel.grid_rowconfigure(0, weight=1)
 
@@ -3351,7 +3578,8 @@ class PlannerFrame(tk.Frame):
         self._style_settings_combobox()
         self.sound_combobox = ttk.Combobox(
             sound_frame,
-            values=["Silence", "Lo-Fi Beats", "Rainforest", "White Noise", "Ocean Waves", "Warm Fireplace"],
+            values=["Silence", "Lo-Fi Beats", "Rainforest",
+                    "White Noise", "Ocean Waves", "Warm Fireplace"],
             state="readonly",
             style="Settings.TCombobox",
             font=("Segoe UI", 9),
@@ -3359,7 +3587,8 @@ class PlannerFrame(tk.Frame):
         )
         self.sound_combobox.set(self.timer_soundscape)
         self.sound_combobox.pack(side="left", padx=5, ipady=2)
-        self.sound_combobox.bind("<<ComboboxSelected>>", self._on_soundscape_change)
+        self.sound_combobox.bind(
+            "<<ComboboxSelected>>", self._on_soundscape_change)
 
         # Play / Pause soundscape
         self.btn_scape = create_flat_button(sound_frame, "▶ Play", self.theme["success"], "#ffffff",
@@ -3380,9 +3609,11 @@ class PlannerFrame(tk.Frame):
         )
         self.volume_scale.set(self.timer_volume)
         self.volume_scale.pack(side="left")
-        self.volume_scale.bind("<ButtonRelease-1>", lambda e: self._apply_volume())
+        self.volume_scale.bind("<ButtonRelease-1>",
+                               lambda e: self._apply_volume())
 
-        self.visualizer_canvas = tk.Canvas(card, bg=self.theme["bg_card"], width=300, height=40, bd=0, highlightthickness=0)
+        self.visualizer_canvas = tk.Canvas(
+            card, bg=self.theme["bg_card"], width=300, height=40, bd=0, highlightthickness=0)
         self.visualizer_canvas.pack(pady=5)
         self._draw_static_visualizer()
 
@@ -3406,13 +3637,15 @@ class PlannerFrame(tk.Frame):
         play_click_sound()
         if self.timer_running:
             self.timer_running = False
-            self.btn_timer_toggle.config(text="Start", bg=self.theme["success"], activebackground=self.theme["success_hover"])
+            self.btn_timer_toggle.config(
+                text="Start", bg=self.theme["success"], activebackground=self.theme["success_hover"])
             if self.timer_after_id:
                 self.parent.after_cancel(self.timer_after_id)
                 self.timer_after_id = None
         else:
             self.timer_running = True
-            self.btn_timer_toggle.config(text="Pause", bg=self.theme["warning"], activebackground=self.theme["warning_hover"])
+            self.btn_timer_toggle.config(
+                text="Pause", bg=self.theme["warning"], activebackground=self.theme["warning_hover"])
             self._timer_tick()
 
     def _reset_timer(self):
@@ -3421,7 +3654,8 @@ class PlannerFrame(tk.Frame):
         if self.timer_after_id:
             self.parent.after_cancel(self.timer_after_id)
             self.timer_after_id = None
-        self.btn_timer_toggle.config(text="Start", bg=self.theme["success"], activebackground=self.theme["success_hover"])
+        self.btn_timer_toggle.config(
+            text="Start", bg=self.theme["success"], activebackground=self.theme["success_hover"])
         self.timer_seconds = 25 * 60 if self.timer_mode == "Work" else 5 * 60
         self._update_timer_display()
         self._draw_static_visualizer()
@@ -3435,16 +3669,19 @@ class PlannerFrame(tk.Frame):
             self.timer_after_id = self.parent.after(1000, self._timer_tick)
         else:
             self.timer_running = False
-            self.btn_timer_toggle.config(text="Start", bg=self.theme["success"], activebackground=self.theme["success_hover"])
+            self.btn_timer_toggle.config(
+                text="Start", bg=self.theme["success"], activebackground=self.theme["success_hover"])
             self.timer_after_id = None
 
             play_notify_sound()
 
             if self.timer_mode == "Work":
-                messagebox.showinfo("Timer Alert", "Great job! Work session completed. Time for a short break.")
+                messagebox.showinfo(
+                    "Timer Alert", "Great job! Work session completed. Time for a short break.")
                 self._set_timer_mode("Break")
             else:
-                messagebox.showinfo("Timer Alert", "Break ended! Let's get back to studying.")
+                messagebox.showinfo(
+                    "Timer Alert", "Break ended! Let's get back to studying.")
                 self._set_timer_mode("Work")
 
     def _set_timer_mode(self, mode):
@@ -3454,17 +3691,20 @@ class PlannerFrame(tk.Frame):
             self.parent.after_cancel(self.timer_after_id)
             self.timer_after_id = None
         self.timer_running = False
-        self.btn_timer_toggle.config(text="Start", bg=self.theme["success"], activebackground=self.theme["success_hover"])
-        
+        self.btn_timer_toggle.config(
+            text="Start", bg=self.theme["success"], activebackground=self.theme["success_hover"])
+
         if mode == "Work":
             self.timer_seconds = 25 * 60
             self.btn_mode_work.config(bg=self.theme["primary"], fg="#ffffff")
-            self.btn_mode_break.config(bg=self.theme["bg_main"], fg=self.theme["text_primary"])
+            self.btn_mode_break.config(
+                bg=self.theme["bg_main"], fg=self.theme["text_primary"])
         else:
             self.timer_seconds = 5 * 60
             self.btn_mode_break.config(bg=self.theme["primary"], fg="#ffffff")
-            self.btn_mode_work.config(bg=self.theme["bg_main"], fg=self.theme["text_primary"])
-            
+            self.btn_mode_work.config(
+                bg=self.theme["bg_main"], fg=self.theme["text_primary"])
+
         self._update_timer_display()
         self._draw_static_visualizer()
 
@@ -3485,7 +3725,8 @@ class PlannerFrame(tk.Frame):
         name = self.sound_combobox.get()
         self.timer_soundscape = name
         if name == "Silence":
-            messagebox.showinfo("Soundscape", "Select a soundscape other than 'Silence' to play audio.")
+            messagebox.showinfo(
+                "Soundscape", "Select a soundscape other than 'Silence' to play audio.")
             return
         if play_soundscape(name, self.timer_volume):
             self.soundscape_playing = True
@@ -3523,7 +3764,8 @@ class PlannerFrame(tk.Frame):
             y0 = h - 5
             x1 = x0 + bar_w
             y1 = h - 8
-            self.visualizer_canvas.create_rectangle(x0, y0, x1, y1, fill=self.theme["border"], outline="")
+            self.visualizer_canvas.create_rectangle(
+                x0, y0, x1, y1, fill=self.theme["border"], outline="")
 
     def _animate_visualizer(self):
         # Stop the loop if the canvas was destroyed (theme switch / logout) so the
@@ -3542,21 +3784,23 @@ class PlannerFrame(tk.Frame):
         gap = 4
         start_x = (w - (num_bars * (bar_w + gap) - gap)) / 2
         color = self.theme["primary"]
-        
+
         for i in range(num_bars):
             bar_h = random.randint(5, 32)
             x0 = start_x + i * (bar_w + gap)
             y0 = h - bar_h
             x1 = x0 + bar_w
             y1 = h - 2
-            self.visualizer_canvas.create_rectangle(x0, y0, x1, y1, fill=color, outline="")
-            
+            self.visualizer_canvas.create_rectangle(
+                x0, y0, x1, y1, fill=color, outline="")
+
         self.parent.after(150, self._animate_visualizer)
 
     # --- STUDY ASSISTANT ---
 
     def _build_ai_panel(self):
-        self.ai_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])
+        self.ai_panel = tk.Frame(self.panel_container,
+                                 bg=self.theme["bg_main"])
         self.ai_panel.grid_columnconfigure(0, weight=1)
         self.ai_panel.grid_rowconfigure(1, weight=1)
 
@@ -3588,15 +3832,21 @@ class PlannerFrame(tk.Frame):
         self.chat_history.grid(row=0, column=0, sticky="nsew")
         self.chat_history.config(state="disabled")
 
-        scrollbar = ttk.Scrollbar(chat_card, orient="vertical", command=self.chat_history.yview)
+        scrollbar = ttk.Scrollbar(
+            chat_card, orient="vertical", command=self.chat_history.yview)
         scrollbar.grid(row=0, column=1, sticky="ns")
         self.chat_history.config(yscrollcommand=scrollbar.set)
 
-        self.chat_history.tag_config("user_sender", foreground=self.theme["primary"], font=("Segoe UI", 10, "bold"))
-        self.chat_history.tag_config("ai_sender", foreground=self.theme["success"], font=("Segoe UI", 10, "bold"))
-        self.chat_history.tag_config("user_msg", foreground=self.theme["text_primary"])
-        self.chat_history.tag_config("ai_msg", foreground=self.theme["text_primary"])
-        self.chat_history.tag_config("system_msg", foreground=self.theme["text_muted"], font=("Segoe UI", 9, "italic"))
+        self.chat_history.tag_config(
+            "user_sender", foreground=self.theme["primary"], font=("Segoe UI", 10, "bold"))
+        self.chat_history.tag_config(
+            "ai_sender", foreground=self.theme["success"], font=("Segoe UI", 10, "bold"))
+        self.chat_history.tag_config(
+            "user_msg", foreground=self.theme["text_primary"])
+        self.chat_history.tag_config(
+            "ai_msg", foreground=self.theme["text_primary"])
+        self.chat_history.tag_config(
+            "system_msg", foreground=self.theme["text_muted"], font=("Segoe UI", 9, "italic"))
 
         input_frame = tk.Frame(self.ai_panel, bg=self.theme["bg_main"])
         input_frame.grid(row=2, column=0, sticky="ew", pady=(10, 0))
@@ -3622,14 +3872,14 @@ class PlannerFrame(tk.Frame):
             return
         self.ai_input.delete(0, "end")
         self._append_to_chat("User", query, "user_msg")
-        
+
         self.parent.after(400, lambda: self._generate_ai_response(query))
 
     def _append_to_chat(self, sender, text, tag):
         self.chat_history.config(state="normal")
         sender_tag = "user_sender" if sender == "User" else "ai_sender"
         self.chat_history.insert("end", f"\n{sender}: ", sender_tag)
-        
+
         if sender == "Assistant" and tag == "ai_msg":
             self.chat_history.config(state="disabled")
             self._typewriter_effect(text, 0)
@@ -3650,7 +3900,8 @@ class PlannerFrame(tk.Frame):
             self.chat_history.insert("end", text[index], "ai_msg")
             self.chat_history.see("end")
             self.chat_history.config(state="disabled")
-            self.parent.after(8, lambda: self._typewriter_effect(text, index + 1))
+            self.parent.after(
+                8, lambda: self._typewriter_effect(text, index + 1))
         else:
             self.chat_history.config(state="normal")
             self.chat_history.insert("end", "\n")
@@ -3660,22 +3911,30 @@ class PlannerFrame(tk.Frame):
     def _on_ai_quick_prompt(self, action):
         play_click_sound()
         if action == "explain":
-            concept = ModernInputDialog.ask(self.parent, "Explain Concept", "What scientific, math, or study concept should I explain?")
+            concept = ModernInputDialog.ask(
+                self.parent, "Explain Concept", "What scientific, math, or study concept should I explain?")
             if concept and concept.strip():
-                self._append_to_chat("User", f"Explain the concept of: {concept.strip()}", "user_msg")
-                self.parent.after(400, lambda: self._generate_ai_response(f"explain {concept.strip()}"))
+                self._append_to_chat(
+                    "User", f"Explain the concept of: {concept.strip()}", "user_msg")
+                self.parent.after(400, lambda: self._generate_ai_response(
+                    f"explain {concept.strip()}"))
         elif action == "summarize":
-            self._append_to_chat("User", "Generate a summary of my active task load.", "user_msg")
-            self.parent.after(400, lambda: self._generate_ai_response("summarize"))
+            self._append_to_chat(
+                "User", "Generate a summary of my active task load.", "user_msg")
+            self.parent.after(
+                400, lambda: self._generate_ai_response("summarize"))
         elif action == "practice":
-            subject = ModernInputDialog.ask(self.parent, "Practice Questions", "Enter subject category (e.g. Physics, Calculus, Coding):")
+            subject = ModernInputDialog.ask(
+                self.parent, "Practice Questions", "Enter subject category (e.g. Physics, Calculus, Coding):")
             if subject and subject.strip():
-                self._append_to_chat("User", f"Generate practice questions for: {subject.strip()}", "user_msg")
-                self.parent.after(400, lambda: self._generate_ai_response(f"practice {subject.strip()}"))
+                self._append_to_chat(
+                    "User", f"Generate practice questions for: {subject.strip()}", "user_msg")
+                self.parent.after(400, lambda: self._generate_ai_response(
+                    f"practice {subject.strip()}"))
 
     def _generate_ai_response(self, query):
         q_lower = query.lower()
-        
+
         if q_lower.startswith("explain "):
             concept = query[8:].strip()
             response = (
@@ -3687,16 +3946,18 @@ class PlannerFrame(tk.Frame):
         elif q_lower == "summarize":
             pending = [t for t in self.manager.tasks if t.status != "Completed"]
             high_prio = [t for t in pending if t.priority == "High"]
-            
+
             if not pending:
                 response = "You currently have no pending tasks in your Study Planner database! Keep up the excellent work! You are all caught up."
             else:
                 task_items = []
                 for idx, t in enumerate(pending[:5]):
-                    task_items.append(f"  - [{t.priority}] {t.title} (Due: {t.deadline})")
+                    task_items.append(
+                        f"  - [{t.priority}] {t.title} (Due: {t.deadline})")
                 if len(pending) > 5:
-                    task_items.append(f"  - ... and {len(pending) - 5} more tasks.")
-                
+                    task_items.append(
+                        f"  - ... and {len(pending) - 5} more tasks.")
+
                 tasks_text = "\n".join(task_items)
                 response = (
                     f"Here is a comprehensive summary of your active workload:\n\n"
@@ -3735,13 +3996,14 @@ class PlannerFrame(tk.Frame):
                 "- Spend 25 minutes studying the first section (using the Focus Timer!), then take a 5-minute break.\n"
                 "- Let me know if you would like me to explain a specific concept (type 'explain [topic]') or generate review questions!"
             )
-            
+
         self._append_to_chat("Assistant", response, "ai_msg")
 
     # --- STUDY GROUPS DASHBOARD ---
 
     def _build_groups_panel(self):
-        self.groups_panel = tk.Frame(self.panel_container, bg=self.theme["bg_main"])
+        self.groups_panel = tk.Frame(
+            self.panel_container, bg=self.theme["bg_main"])
         self.groups_panel.grid_columnconfigure(0, weight=1)
         self.groups_panel.grid_rowconfigure(1, weight=1)
 
@@ -3766,13 +4028,15 @@ class PlannerFrame(tk.Frame):
             self._tab_btns[tab_key] = btn
 
         # Content frames (stacked at row=1)
-        self._groups_content = tk.Frame(self.groups_panel, bg=self.theme["bg_main"])
+        self._groups_content = tk.Frame(
+            self.groups_panel, bg=self.theme["bg_main"])
         self._groups_content.grid(row=1, column=0, sticky="nsew")
         self._groups_content.grid_columnconfigure(0, weight=0, minsize=240)
         self._groups_content.grid_columnconfigure(1, weight=1)
         self._groups_content.grid_rowconfigure(0, weight=1)
 
-        self._lan_content = tk.Frame(self.groups_panel, bg=self.theme["bg_main"])
+        self._lan_content = tk.Frame(
+            self.groups_panel, bg=self.theme["bg_main"])
         self._lan_content.grid_columnconfigure(0, weight=0, minsize=240)
         self._lan_content.grid_columnconfigure(1, weight=1)
         self._lan_content.grid_rowconfigure(0, weight=1)
@@ -3790,21 +4054,26 @@ class PlannerFrame(tk.Frame):
         self.groups_listbox = tk.Listbox(left_pane, bg=self.theme["bg_main"], fg=self.theme["text_primary"],
                                          selectbackground=self.theme["primary"], selectforeground="#ffffff",
                                          highlightthickness=0, bd=0, font=("Segoe UI", 10))
-        self.groups_listbox.grid(row=1, column=0, sticky="nsew", padx=15, pady=(0, 10))
+        self.groups_listbox.grid(
+            row=1, column=0, sticky="nsew", padx=15, pady=(0, 10))
         self.groups_listbox.bind("<<ListboxSelect>>", self._on_group_select)
 
         btn_create_grp = create_flat_button(left_pane, "Create New Group", self.theme["primary"], "#ffffff",
                                             self._create_new_group, hover_bg=self.theme["primary_hover"],
                                             font=("Segoe UI", 9, "bold"))
-        btn_create_grp.grid(row=2, column=0, sticky="ew", padx=15, pady=(15, 4))
+        btn_create_grp.grid(row=2, column=0, sticky="ew",
+                            padx=15, pady=(15, 4))
 
         self.btn_delete_grp = create_flat_button(left_pane, "🗑 Delete Group", self.theme["danger"], "#ffffff",
-                                                 self._delete_selected_group, hover_bg=self.theme["danger_hover"],
+                                                 self._delete_selected_group, hover_bg=self.theme[
+                                                     "danger_hover"],
                                                  font=("Segoe UI", 9, "bold"))
-        self.btn_delete_grp.grid(row=3, column=0, sticky="ew", padx=15, pady=(0, 15))
+        self.btn_delete_grp.grid(
+            row=3, column=0, sticky="ew", padx=15, pady=(0, 15))
         self.btn_delete_grp.grid_remove()
 
-        self.group_details_frame = tk.Frame(self._groups_content, bg=self.theme["bg_main"])
+        self.group_details_frame = tk.Frame(
+            self._groups_content, bg=self.theme["bg_main"])
         self.group_details_frame.grid(row=0, column=1, sticky="nsew")
         self.group_details_frame.grid_columnconfigure(0, weight=1)
         self.group_details_frame.grid_rowconfigure(0, weight=1)
@@ -3821,7 +4090,8 @@ class PlannerFrame(tk.Frame):
         self._active_groups_tab = tab_key
         for key, btn in self._tab_btns.items():
             if key == tab_key:
-                btn.config(fg=self.theme["primary"], font=("Segoe UI", 10, "bold"))
+                btn.config(fg=self.theme["primary"],
+                           font=("Segoe UI", 10, "bold"))
             else:
                 btn.config(fg=self.theme["text_muted"], font=("Segoe UI", 10))
 
@@ -3850,21 +4120,26 @@ class PlannerFrame(tk.Frame):
         self._lan_status_lbl = tk.Label(lan_left, text="Searching on local network…",
                                         font=("Segoe UI", 8), bg=self.theme["bg_card"],
                                         fg=self.theme["text_muted"])
-        self._lan_status_lbl.grid(row=1, column=0, sticky="w", padx=15, pady=(0, 6))
+        self._lan_status_lbl.grid(
+            row=1, column=0, sticky="w", padx=15, pady=(0, 6))
 
         self._lan_listbox = tk.Listbox(lan_left, bg=self.theme["bg_main"], fg=self.theme["text_primary"],
                                        selectbackground=self.theme["primary"], selectforeground="#ffffff",
                                        highlightthickness=0, bd=0, font=("Segoe UI", 10))
-        self._lan_listbox.grid(row=2, column=0, sticky="nsew", padx=15, pady=(0, 10))
+        self._lan_listbox.grid(
+            row=2, column=0, sticky="nsew", padx=15, pady=(0, 10))
         self._lan_listbox.bind("<<ListboxSelect>>", self._on_lan_room_select)
 
         self._lan_host_btn = create_flat_button(lan_left, "📡 Host a Study Room", self.theme["success"], "#ffffff",
-                                                self._on_host_room_clicked, hover_bg=self.theme["success_hover"],
+                                                self._on_host_room_clicked, hover_bg=self.theme[
+                                                    "success_hover"],
                                                 font=("Segoe UI", 9, "bold"))
-        self._lan_host_btn.grid(row=3, column=0, sticky="ew", padx=15, pady=(0, 15))
+        self._lan_host_btn.grid(
+            row=3, column=0, sticky="ew", padx=15, pady=(0, 15))
 
         # Right pane: selected room details
-        self._lan_detail_frame = tk.Frame(self._lan_content, bg=self.theme["bg_main"])
+        self._lan_detail_frame = tk.Frame(
+            self._lan_content, bg=self.theme["bg_main"])
         self._lan_detail_frame.grid(row=0, column=1, sticky="nsew")
         self._lan_detail_frame.grid_columnconfigure(0, weight=1)
         self._lan_detail_frame.grid_rowconfigure(0, weight=1)
@@ -3892,7 +4167,8 @@ class PlannerFrame(tk.Frame):
                  bg=self.theme["bg_card"], fg=self.theme["primary"]).pack(pady=(0, 10))
 
         u = self.current_user
-        info_parts = [p for p in [u.get("department", ""), u.get("class_name", ""), u.get("section", "")] if p]
+        info_parts = [p for p in [u.get("department", ""), u.get(
+            "class_name", ""), u.get("section", "")] if p]
         if info_parts:
             tk.Label(card, text=" · ".join(info_parts), font=("Segoe UI", 10),
                      bg=self.theme["bg_card"], fg=self.theme["text_muted"]).pack(pady=(0, 20))
@@ -3957,7 +4233,8 @@ class PlannerFrame(tk.Frame):
             self._lan_status_lbl.config(text="No rooms found yet — searching…")
         else:
             n = len(rooms)
-            self._lan_status_lbl.config(text=f"{n} room{'s' if n != 1 else ''} found on your network")
+            self._lan_status_lbl.config(
+                text=f"{n} room{'s' if n != 1 else ''} found on your network")
         for ip, info in rooms.items():
             label = f"{info.get('room', '?')}  —  {info.get('host', ip)}"
             dept = info.get("department", "")
@@ -4020,7 +4297,7 @@ class PlannerFrame(tk.Frame):
     def _draw_group_details_placeholder(self):
         for w in self.group_details_frame.winfo_children():
             w.destroy()
-            
+
         placeholder = tk.Label(self.group_details_frame, text="Select a study group from the list to view tasks & members",
                                font=("Segoe UI", 11, "italic"), bg=self.theme["bg_main"], fg=self.theme["text_muted"])
         placeholder.pack(expand=True)
@@ -4052,16 +4329,19 @@ class PlannerFrame(tk.Frame):
     def _delete_selected_group(self):
         if self.selected_group_id is None:
             return
-        group = next((g for g in self.user_groups if g["id"] == self.selected_group_id), None)
+        group = next(
+            (g for g in self.user_groups if g["id"] == self.selected_group_id), None)
         name = group["name"] if group else "this group"
         if not messagebox.askyesno(
                 "Delete Group",
                 f"Delete the study group '{name}'?\n\nThis removes all its shared tasks and members and cannot be undone."):
             return
         try:
-            self.db.delete_study_group(self.selected_group_id, self.current_user["id"])
+            self.db.delete_study_group(
+                self.selected_group_id, self.current_user["id"])
             play_success_sound()
-            messagebox.showinfo("Deleted", f"Study group '{name}' was deleted.")
+            messagebox.showinfo(
+                "Deleted", f"Study group '{name}' was deleted.")
             self.selected_group_id = None
             self._refresh_groups_tab()
         except Exception as exc:
@@ -4071,7 +4351,7 @@ class PlannerFrame(tk.Frame):
     def _draw_group_details(self, group):
         for w in self.group_details_frame.winfo_children():
             w.destroy()
-            
+
         self.group_details_frame.grid_columnconfigure(0, weight=1)
         self.group_details_frame.grid_columnconfigure(1, weight=1)
         self.group_details_frame.grid_rowconfigure(1, weight=1)
@@ -4080,7 +4360,7 @@ class PlannerFrame(tk.Frame):
         header = tk.Frame(self.group_details_frame, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
                           highlightthickness=1, bd=0)
         header.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
-        
+
         tk.Label(header, text=group["name"], font=("Segoe UI", 14, "bold"),
                  bg=self.theme["bg_card"], fg=self.theme["primary"]).pack(anchor="w", padx=15, pady=(10, 2))
         tk.Label(header, text=f"Created on: {group['created_at']}", font=("Segoe UI", 9),
@@ -4088,7 +4368,8 @@ class PlannerFrame(tk.Frame):
 
         members_card = tk.Frame(self.group_details_frame, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
                                 highlightthickness=1, bd=0)
-        members_card.grid(row=1, column=0, sticky="nsew", padx=(0, 5), pady=(0, 10))
+        members_card.grid(row=1, column=0, sticky="nsew",
+                          padx=(0, 5), pady=(0, 10))
         members_card.grid_rowconfigure(1, weight=1)
         members_card.grid_columnconfigure(0, weight=1)
 
@@ -4097,7 +4378,8 @@ class PlannerFrame(tk.Frame):
 
         members_list = tk.Listbox(members_card, bg=self.theme["bg_main"], fg=self.theme["text_primary"],
                                   highlightthickness=0, bd=0, font=("Segoe UI", 9))
-        members_list.grid(row=1, column=0, sticky="nsew", padx=15, pady=(0, 10))
+        members_list.grid(row=1, column=0, sticky="nsew",
+                          padx=15, pady=(0, 10))
 
         members = self.db.get_group_members(group["id"])
         for mem in members:
@@ -4109,7 +4391,8 @@ class PlannerFrame(tk.Frame):
 
         tasks_card = tk.Frame(self.group_details_frame, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
                               highlightthickness=1, bd=0)
-        tasks_card.grid(row=1, column=1, sticky="nsew", padx=(5, 0), pady=(0, 10))
+        tasks_card.grid(row=1, column=1, sticky="nsew",
+                        padx=(5, 0), pady=(0, 10))
         tasks_card.grid_rowconfigure(1, weight=1)
         tasks_card.grid_columnconfigure(0, weight=1)
 
@@ -4117,7 +4400,8 @@ class PlannerFrame(tk.Frame):
                  bg=self.theme["bg_card"], fg=self.theme["text_primary"]).grid(row=0, column=0, sticky="w", padx=15, pady=10)
 
         columns = ("title", "priority", "deadline", "status")
-        tasks_tree = ttk.Treeview(tasks_card, columns=columns, show="headings", height=8)
+        tasks_tree = ttk.Treeview(
+            tasks_card, columns=columns, show="headings", height=8)
         tasks_tree.grid(row=1, column=0, sticky="nsew", padx=15, pady=(0, 10))
 
         tasks_tree.heading("title", text="Task Title")
@@ -4132,7 +4416,8 @@ class PlannerFrame(tk.Frame):
 
         g_tasks = self.db.get_group_tasks(group["id"])
         for gt in g_tasks:
-            tasks_tree.insert("", "end", values=(gt["title"], gt["priority"], gt["deadline"], gt["status"]))
+            tasks_tree.insert("", "end", values=(
+                gt["title"], gt["priority"], gt["deadline"], gt["status"]))
 
         btn_add_tsk = create_flat_button(tasks_card, "Add Group Task", self.theme["success"], "#ffffff",
                                          self._add_group_task, hover_bg=self.theme["success_hover"], font=("Segoe UI", 9, "bold"))
@@ -4140,7 +4425,8 @@ class PlannerFrame(tk.Frame):
 
         sessions_card = tk.Frame(self.group_details_frame, bg=self.theme["bg_card"], highlightbackground=self.theme["border"],
                                  highlightthickness=1, bd=0)
-        sessions_card.grid(row=2, column=0, columnspan=2, sticky="nsew", pady=(5, 0))
+        sessions_card.grid(row=2, column=0, columnspan=2,
+                           sticky="nsew", pady=(5, 0))
         sessions_card.grid_rowconfigure(1, weight=1)
         sessions_card.grid_columnconfigure(0, weight=1)
 
@@ -4149,14 +4435,18 @@ class PlannerFrame(tk.Frame):
 
         sessions_list = tk.Listbox(sessions_card, bg=self.theme["bg_main"], fg=self.theme["text_primary"],
                                    highlightthickness=0, bd=0, font=("Segoe UI", 9))
-        sessions_list.grid(row=1, column=0, sticky="nsew", padx=15, pady=(0, 10))
+        sessions_list.grid(row=1, column=0, sticky="nsew",
+                           padx=15, pady=(0, 10))
 
-        sessions = [gt for gt in g_tasks if gt["category"] == "Study" and gt["title"].startswith("Study Session:")]
+        sessions = [gt for gt in g_tasks if gt["category"] ==
+                    "Study" and gt["title"].startswith("Study Session:")]
         if not sessions:
-            sessions_list.insert("end", "No virtual study sessions scheduled yet.")
+            sessions_list.insert(
+                "end", "No virtual study sessions scheduled yet.")
         else:
             for s in sessions:
-                sessions_list.insert("end", f"{s['title']} — Scheduled Date: {s['deadline']} (Status: {s['status']})")
+                sessions_list.insert(
+                    "end", f"{s['title']} — Scheduled Date: {s['deadline']} (Status: {s['status']})")
 
         btn_sched_session = create_flat_button(sessions_card, "Schedule Study Session", self.theme["warning"], "#ffffff",
                                                self._schedule_group_study_session, hover_bg=self.theme["warning_hover"], font=("Segoe UI", 9, "bold"))
@@ -4164,14 +4454,16 @@ class PlannerFrame(tk.Frame):
 
     def _create_new_group(self):
         play_click_sound()
-        name = ModernInputDialog.ask(self.parent, "Create Group", "Enter the name of your new study group:")
+        name = ModernInputDialog.ask(
+            self.parent, "Create Group", "Enter the name of your new study group:")
         if not name or not name.strip():
             return
-            
+
         try:
             self.db.create_study_group(name.strip(), self.current_user["id"])
             play_success_sound()
-            messagebox.showinfo("Success", f"Group '{name.strip()}' created successfully!")
+            messagebox.showinfo(
+                "Success", f"Group '{name.strip()}' created successfully!")
             self._refresh_groups_tab()
         except Exception as exc:
             play_error_sound()
@@ -4181,11 +4473,12 @@ class PlannerFrame(tk.Frame):
         play_click_sound()
         if not self.selected_group_id:
             return
-            
-        email = ModernInputDialog.ask(self.parent, "Add Member", "Enter student email address to add:")
+
+        email = ModernInputDialog.ask(
+            self.parent, "Add Member", "Enter student email address to add:")
         if not email or not email.strip():
             return
-            
+
         email = email.strip()
         if not validate_email(email):
             play_error_sound()
@@ -4193,15 +4486,19 @@ class PlannerFrame(tk.Frame):
             return
 
         try:
-            success = self.db.add_group_member_by_email(self.selected_group_id, email)
+            success = self.db.add_group_member_by_email(
+                self.selected_group_id, email)
             if success:
                 play_success_sound()
-                messagebox.showinfo("Success", f"Student '{email}' added to group successfully!")
-                group = [g for g in self.user_groups if g["id"] == self.selected_group_id][0]
+                messagebox.showinfo(
+                    "Success", f"Student '{email}' added to group successfully!")
+                group = [g for g in self.user_groups if g["id"]
+                         == self.selected_group_id][0]
                 self._draw_group_details(group)
             else:
                 play_error_sound()
-                messagebox.showerror("Error", "User not found with that email address.")
+                messagebox.showerror(
+                    "Error", "User not found with that email address.")
         except Exception as exc:
             play_error_sound()
             messagebox.showerror("Error", f"Failed to add member: {exc}")
@@ -4210,33 +4507,40 @@ class PlannerFrame(tk.Frame):
         play_click_sound()
         if not self.selected_group_id:
             return
-            
-        title = ModernInputDialog.ask(self.parent, "Group Task", "Enter task title:")
+
+        title = ModernInputDialog.ask(
+            self.parent, "Group Task", "Enter task title:")
         if not title or not title.strip():
             return
 
-        priority = ModernInputDialog.ask(self.parent, "Group Task", "Priority (High, Medium, Low):", initialvalue="Medium")
+        priority = ModernInputDialog.ask(
+            self.parent, "Group Task", "Priority (High, Medium, Low):", initialvalue="Medium")
         if priority not in ("High", "Medium", "Low"):
             priority = "Medium"
 
-        deadline = ModernInputDialog.ask(self.parent, "Group Task", "Deadline (YYYY-MM-DD):", initialvalue=date.today().strftime("%Y-%m-%d"))
+        deadline = ModernInputDialog.ask(
+            self.parent, "Group Task", "Deadline (YYYY-MM-DD):", initialvalue=date.today().strftime("%Y-%m-%d"))
         if not deadline:
             return
         if not parse_date(deadline):
             play_error_sound()
-            messagebox.showerror("Error", "Invalid date format. Use YYYY-MM-DD.")
+            messagebox.showerror(
+                "Error", "Invalid date format. Use YYYY-MM-DD.")
             return
 
-        category = ModernInputDialog.ask(self.parent, "Group Task", "Category (e.g. Study, Assignment, Project):", initialvalue="Study")
+        category = ModernInputDialog.ask(
+            self.parent, "Group Task", "Category (e.g. Study, Assignment, Project):", initialvalue="Study")
         if not category:
             category = "Study"
 
         try:
-            self.db.add_group_task(self.selected_group_id, title.strip(), priority, deadline, category)
+            self.db.add_group_task(
+                self.selected_group_id, title.strip(), priority, deadline, category)
             play_success_sound()
             messagebox.showinfo("Success", "Group task added successfully!")
-            
-            group = [g for g in self.user_groups if g["id"] == self.selected_group_id][0]
+
+            group = [g for g in self.user_groups if g["id"]
+                     == self.selected_group_id][0]
             self._draw_group_details(group)
         except Exception as exc:
             play_error_sound()
@@ -4246,35 +4550,43 @@ class PlannerFrame(tk.Frame):
         play_click_sound()
         if not self.selected_group_id:
             return
-            
-        topic = ModernInputDialog.ask(self.parent, "Schedule Study Session", "Enter study session topic:")
+
+        topic = ModernInputDialog.ask(
+            self.parent, "Schedule Study Session", "Enter study session topic:")
         if not topic or not topic.strip():
             return
 
-        session_date = ModernInputDialog.ask(self.parent, "Schedule Study Session", "Date (YYYY-MM-DD):", initialvalue=date.today().strftime("%Y-%m-%d"))
+        session_date = ModernInputDialog.ask(
+            self.parent, "Schedule Study Session", "Date (YYYY-MM-DD):", initialvalue=date.today().strftime("%Y-%m-%d"))
         if not session_date:
             return
         if not parse_date(session_date):
             play_error_sound()
-            messagebox.showerror("Error", "Invalid date format. Use YYYY-MM-DD.")
+            messagebox.showerror(
+                "Error", "Invalid date format. Use YYYY-MM-DD.")
             return
 
-        session_time = ModernInputDialog.ask(self.parent, "Schedule Study Session", "Time (e.g., 14:00, 16:30):", initialvalue="15:00")
+        session_time = ModernInputDialog.ask(
+            self.parent, "Schedule Study Session", "Time (e.g., 14:00, 16:30):", initialvalue="15:00")
         if not session_time:
             session_time = "15:00"
 
         title = f"Study Session: {topic.strip()} at {session_time}"
 
         try:
-            self.db.add_group_task(self.selected_group_id, title, "Medium", session_date, "Study")
+            self.db.add_group_task(
+                self.selected_group_id, title, "Medium", session_date, "Study")
             play_success_sound()
-            messagebox.showinfo("Success", f"Study Session on '{topic}' scheduled successfully!")
-            
-            group = [g for g in self.user_groups if g["id"] == self.selected_group_id][0]
+            messagebox.showinfo(
+                "Success", f"Study Session on '{topic}' scheduled successfully!")
+
+            group = [g for g in self.user_groups if g["id"]
+                     == self.selected_group_id][0]
             self._draw_group_details(group)
         except Exception as exc:
             play_error_sound()
-            messagebox.showerror("Error", f"Failed to schedule study session: {exc}")
+            messagebox.showerror(
+                "Error", f"Failed to schedule study session: {exc}")
 
     # --- SESSION MANAGEMENT ---
 
@@ -4305,8 +4617,8 @@ class StudyPlannerGUI(tk.Tk):
         except Exception:
             pass
 
-        self.current_theme = "dark" # default slate dark theme
-        self.current_lang = "en" # default language preference
+        self.current_theme = "dark"  # default slate dark theme
+        self.current_lang = "en"  # default language preference
         self.configure(bg=THEMES[self.current_theme]["bg_main"])
 
         self.db = DatabaseManager(DB_FILE)
@@ -4399,7 +4711,8 @@ class StudyPlannerGUI(tk.Tk):
     def confirm_exit(self):
         """Ask for confirmation before closing to prevent accidental data loss."""
         lang = self.current_lang
-        title = TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get("exit_confirm_title", "Exit Application")
+        title = TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(
+            "exit_confirm_title", "Exit Application")
         msg = TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(
             "exit_confirm_msg", "Are you sure you want to exit Smart Study Planner?")
         play_click_sound()

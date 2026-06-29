@@ -159,7 +159,8 @@ class LANManager:
 
             # Evict stale rooms.
             now = time.time()
-            stale = [ip for ip, t in last_seen.items() if now - t > STALE_TIMEOUT]
+            stale = [ip for ip, t in last_seen.items() if now - t >
+                     STALE_TIMEOUT]
             if stale:
                 for ip in stale:
                     self.discovered_rooms.pop(ip, None)
