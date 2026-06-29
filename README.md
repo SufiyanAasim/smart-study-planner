@@ -21,20 +21,6 @@ Manage tasks, timetables, study sessions, and group study — all from a single 
 
 ---
 
-## 🖼️ Screenshots
-
-> Screenshots are captured from a live build — dark and light themes available.
-
-| Login Screen | Task Dashboard | Study Groups |
-|:---:|:---:|:---:|
-| *(coming soon)* | *(coming soon)* | *(coming soon)* |
-
-| Focus Timer | Visual Insights | Credits |
-|:---:|:---:|:---:|
-| *(coming soon)* | *(coming soon)* | *(coming soon)* |
-
----
-
 ## ✨ Features
 
 ### 📋 Task Management
